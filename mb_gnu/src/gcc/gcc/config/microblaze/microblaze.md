@@ -222,44 +222,44 @@
 ;;----------------------------------------------------------------
 ;; Microblaze 5-stage pipeline description (v5.00.a and later)
 ;;----------------------------------------------------------------                 
-                    
+
 (define_automaton   "mbpipe_5")
-(define_cpu_unit    "mb_issue,mb_iu,mb_wb,mb_fpu,mb_fpu_2,mb_mul,mb_mul_2,mb_div,mb_div_2,mb_bs,mb_bs_2" "mbpipe_5")
+(define_cpu_unit    "mb_iu,mb_fpu,mb_div" "mbpipe_5")
 
 (define_insn_reservation "mb-integer" 1 
   (and (eq_attr "type" "branch,jump,call,arith,darith,icmp,nop,no_delay_arith")
        (eq (symbol_ref  "microblaze_pipe") (const_int MB_PIPE_5)))
-  "mb_issue,mb_iu,mb_wb")
+  "mb_iu")
 
 (define_insn_reservation "mb-special-move" 2
   (and (eq_attr "type" "move")
        (eq (symbol_ref  "microblaze_pipe") (const_int MB_PIPE_5)))
-  "mb_issue,mb_iu*2,mb_wb")
+  "mb_iu*2")
 
 (define_insn_reservation "mb-mem-load" 3
   (and (eq_attr "type" "load,no_delay_load")
        (eq (symbol_ref  "microblaze_pipe") (const_int MB_PIPE_5)))
-  "mb_issue,mb_iu,mb_wb")
+  "mb_iu")
 
 (define_insn_reservation "mb-mem-store" 1
   (and (eq_attr "type" "store,no_delay_store")
        (eq (symbol_ref  "microblaze_pipe") (const_int MB_PIPE_5)))
-  "mb_issue,mb_iu,mb_wb")
+  "mb_iu")
 
 (define_insn_reservation "mb-mul" 3
   (and (eq_attr "type" "imul,no_delay_imul")
        (eq (symbol_ref  "microblaze_pipe") (const_int MB_PIPE_5)))
-  "mb_issue,mb_mul,mb_mul_2*2,mb_wb")
+  "mb_iu")
 
 (define_insn_reservation "mb-div" 34            
   (and (eq_attr "type" "idiv")
        (eq (symbol_ref  "microblaze_pipe") (const_int MB_PIPE_5)))
-    "mb_issue,mb_div,mb_div_2*33,mb_wb")
+    "mb_iu,mb_div*33")
 
 (define_insn_reservation "mb-bs" 2 
   (and (eq_attr "type" "bshift")
        (eq (symbol_ref  "microblaze_pipe") (const_int MB_PIPE_5)))
-   "mb_issue,mb_bs,mb_bs_2,mb_wb")
+   "mb_iu")
 
 ;; We are not producing FSL instructions anyways for this to have any practical use.
 ;; (define_insn_reservation "mb-fsl" 2 
@@ -270,27 +270,27 @@
 (define_insn_reservation "mb-fpu-add-sub-mul" 6
   (and (eq_attr "type" "fadd,frsub,fmul")
        (eq (symbol_ref  "microblaze_pipe") (const_int MB_PIPE_5)))
-  "mb_issue,mb_fpu,mb_fpu_2*5,mb_wb")
+  "mb_iu,mb_fpu*5")
 
 (define_insn_reservation "mb-fpu-fcmp" 3
   (and (eq_attr "type" "fcmp")
        (eq (symbol_ref  "microblaze_pipe") (const_int MB_PIPE_5)))
-  "mb_issue,mb_fpu,mb_fpu*2,mb_wb")
+  "mb_iu,mb_fpu*2")
 
 (define_insn_reservation "mb-fpu-div" 30
   (and (eq_attr "type" "fdiv")
        (eq (symbol_ref  "microblaze_pipe") (const_int MB_PIPE_5)))
-  "mb_issue,mb_fpu,mb_fpu_2*29,mb_wb")
+  "mb_iu,mb_fpu*29")
 
 (define_insn_reservation "mb-fpu-sqrt" 30
   (and (eq_attr "type" "fsqrt")
        (eq (symbol_ref  "microblaze_pipe") (const_int MB_PIPE_5)))
-  "mb_issue,mb_fpu,mb_fpu_2*29,mb_wb")
+  "mb_iu,mb_fpu*29")
 
 (define_insn_reservation "mb-fpu-fcvt" 4
   (and (eq_attr "type" "fcvt")
        (eq (symbol_ref  "microblaze_pipe") (const_int MB_PIPE_5)))
-  "mb_issue,mb_fpu,mb_fpu_2*3,mb_wb")
+  "mb_iu,mb_fpu*3")
 
 ;;----------------------------------------------------------------
 ;; Microblaze 3-stage pipeline description (for v4.00.a and earlier)
@@ -374,11 +374,8 @@
 ;;----------------------------------------------------------------
 (define_delay (eq_attr "type" "branch,call,jump")
   [(and (eq_attr "type" "!branch,call,jump,icmp,multi,no_delay_arith,no_delay_load,no_delay_store,no_delay_imul,no_delay_move,darith") 
-        (ior (eq (symbol_ref "microblaze_no_unsafe_delay") (const_int 0))
-             (eq_attr "type" "!fadd,frsub,fmul,fdiv,fcmp,store,load")
-             ))
+        (eq (symbol_ref "microblaze_no_unsafe_delay") (const_int 0)))
   (nil) (nil)])
-
 
 ;;----------------------------------------------------------------
 ;; Microblaze FPU
