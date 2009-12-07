@@ -388,8 +388,8 @@ print_insn_microblaze (bfd_vma memaddr, struct disassemble_info * info)
   case INST_TYPE_R1:
      fprintf(stream, "\t%s", get_field_r1(inst));
      break;
-  case INST_TYPE_RD_R1_SPECIAL:
-     fprintf(stream, "\t%s, %s", get_field_rd(inst), get_field_r2(inst));
+  case INST_TYPE_R1_R2_SPECIAL:
+     fprintf(stream, "\t%s, %s", get_field_r1(inst), get_field_r2(inst));
      break;
   case INST_TYPE_RD_IMM15:
      fprintf(stream, "\t%s, %s", get_field_rd(inst), get_field_imm15(inst));
