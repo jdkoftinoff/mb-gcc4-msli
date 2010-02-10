@@ -1619,9 +1619,9 @@
   ""
   {
     operands[3] = gen_rtx_REG (SImode, MB_ABI_ASM_TEMP_REGNUM);
+    output_asm_insn ("andi\t%3,%2,31", operands);
     if (REGNO (operands[0]) != REGNO (operands[1])) 
       output_asm_insn ("addk\t%0,r0,%1", operands);
-    output_asm_insn ("andi\t%3,%2,31", operands);
     /* Exit the loop if zero shift. */
     output_asm_insn ("beqid\t%3,.+20", operands);
     /* Emit the loop.  */
@@ -1707,9 +1707,9 @@
   ""
   {
     operands[3] = gen_rtx_REG (SImode, MB_ABI_ASM_TEMP_REGNUM);
+    output_asm_insn ("andi\t%3,%2,31", operands);
     if (REGNO (operands[0]) != REGNO (operands[1])) 
       output_asm_insn ("addk\t%0,r0,%1", operands);
-    output_asm_insn ("andi\t%3,%2,31", operands);
     /* Exit the loop if zero shift. */
     output_asm_insn ("beqid\t%3,.+20", operands);
     /* Emit the loop.  */
@@ -1795,9 +1795,9 @@
   ""
   {
     operands[3] = gen_rtx_REG (SImode, MB_ABI_ASM_TEMP_REGNUM);
+    output_asm_insn ("andi\t%3,%2,31", operands);
     if (REGNO (operands[0]) != REGNO (operands[1])) 
       output_asm_insn ("addk\t%0,r0,%1", operands);
-    output_asm_insn ("andi\t%3,%2,31", operands);
     /* Exit the loop if zero shift. */
     output_asm_insn ("beqid\t%3,.+20", operands);
     /* Emit the loop.  */
