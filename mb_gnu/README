@@ -1,0 +1,56 @@
+README 
+Last updated: JUL 16 2009
+
+About
+
+    This is the Xilinx MicroBlaze GNU tools source package which include
+    binutils, gcc, gdb and newlib. This package supports building the above
+    components for a standalone environment.  
+
+    All scripts take a -noclean option. 
+
+    Type <script> -help to get a listing of all options.
+
+Version
+
+    Current package base versions are:
+
+    binutils-2.16
+    gcc-4.1.2
+    newlib-1.14.0 
+    gdb-6.5
+
+Requirements
+    
+    Supported platforms: Linux (32-bit) and Cygwin (1.7). You need to have a
+    proper native GNU compiler installed. In addition you also need the GNU
+    coreutils package, flex/bison, bash shell, GNU patchutils package and tar,
+    gzip and bzip utilities.  
+
+Build
+
+    Note: An sdk_version.h file is created in the src/ directory the first time
+    you run any of the build scripts. If you want to change the version
+    information that gets built into the tools, edit this file to place the info
+    you want.
+    
+    1.  To build Binutils, type the following in a bash shell from the current 
+        directory.
+
+        ./build_binutils.sh
+
+    2.  To build GCC/Newlib, type the following in a bash shell from the current 
+        directory.
+
+        ./build_gcc.sh
+
+    3.  To build GDB, type the following in a bash shell from the current 
+        directory.
+
+        ./build_gdb.sh    
+
+Install
+
+    All the tools are installed in the release/<platform> directory, where 
+    platform can be "lin" or "nt"
+

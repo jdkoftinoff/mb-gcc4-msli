@@ -1,0 +1,13 @@
+# Ignore the build and release trees
+
+build/
+release/*
+reference-release/*
+src/sdk_version.h
+src/gcc/gcc/DEV-PHASE
+src/binutils/gas/doc/as.info*
+src/binutils/bfd/doc/bfd.info*
+*.swp
+*.orig
+*.rej
+00*

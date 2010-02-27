@@ -1,0 +1,108 @@
+# Copyright (c) 2007 Xilinx, Inc.
+#
+# The authors hereby grant permission to use, copy, modify, distribute,
+# and license this software and its documentation for any purpose, provided
+# that existing copyright notices are retained in all copies and that this
+# notice is included verbatim in any distributions. No written agreement,
+# license, or royalty fee is required for any of the authorized uses.
+# Modifications to this software may be copyrighted by their authors
+# and need not follow the licensing terms described here, provided that
+# the new terms are clearly indicated on the first page of each file where
+# they apply.
+
+# Makefile for libgloss/microblaze. This is the board support
+# code for the various microblaze targets.
+
+DESTDIR =
+VPATH = @srcdir@
+srcdir = @srcdir@
+objdir = .
+srcroot = $(srcdir)/../..
+objroot = $(objdir)/../..
+
+prefix = @prefix@
+exec_prefix = @exec_prefix@
+
+host_alias = @host_alias@
+target_alias = @target_alias@
+
+bindir = @bindir@
+libdir = @libdir@
+tooldir = $(exec_prefix)/$(target_alias)
+
+# Multilib support variables.
+# TOP is used instead of MULTI{BUILD,SRC}TOP.
+MULTIDIRS =
+MULTISUBDIR =
+MULTIDO = true
+MULTICLEAN = true
+
+INSTALL = @INSTALL@
+INSTALL_PROGRAM = @INSTALL_PROGRAM@
+INSTALL_DATA = @INSTALL_DATA@
+
+SHELL = /bin/sh
+
+CC = @CC@
+
+AS = @AS@
+AR = @AR@
+LD = @LD@
+RANLIB = @RANLIB@
+AR_FLAGS = qrv
+
+OBJDUMP = `if [ -f ${objroot}/../binutils/objdump ] ; \
+	then echo ${objroot}/../binutils/objdump ; \
+	else t='$(program_transform_name)'; echo objdump | sed -e $$t ; fi`
+OBJCOPY = `if [ -f ${objroot}/../binutils/objcopy ] ; \
+	then echo ${objroot}/../binutils/objcopy ; \
+	else t='$(program_transform_name)'; echo objcopy | sed -e $$t ; fi`
+
+CRT = crt0.o crt1.o crt2.o crt3.o crt4.o crtinit.o pgcrtinit.o sim-crtinit.o sim-pgcrtinit.o
+LIB = libxil.a
+OBJS = fstat.o getpid.o isatty.o kill.o lseek.o open.o print.o putnum.o sbrk.o stat.o unlink.o write.o read.o close.o moddi3.o timer.o xil_printf.o errno.o _exception_handler.o _hw_exception_handler.o _interrupt_handler.o _program_clean.o _program_init.o xil_malloc.o xil_sbrk.o setjmp.o longjmp.o
+SCRIPTS	= xilinx.ld
+
+CPU = @CPU@
+
+#### Host specific Makefile fragment comes in here.
+@host_makefile_frag@
+
+all: ${CRT} ${LIB}
+
+install: ${CRT} ${LIB}
+	@for crt in ${CRT}; do \
+	$(INSTALL_PROGRAM) $${crt} $(DESTDIR)$(tooldir)/lib${MULTISUBDIR}/$${crt}; \
+	done
+	$(INSTALL_PROGRAM) ${LIB} $(DESTDIR)$(tooldir)/lib${MULTISUBDIR}
+	$(INSTALL_PROGRAM) $(srcdir)/${SCRIPTS} $(DESTDIR)$(tooldir)/lib/
+
+crt0.o:	crt0.s
+crt1.o:	crt1.s
+crt2.o:	crt2.s
+crt3.o:	crt3.s
+crt4.o:	crt4.s
+crtinit.o: crtinit.s
+sim-crtinit.o: sim-crtinit.s
+sim-pgcrtinit.o: sim-pgcrtinit.s
+
+clean mostlyclean:
+	rm -f *.o *.a *.map *.x
+
+distclean maintainer-clean realclean: clean
+	rm -f Makefile config.cache config.log config.status
+
+${LIB}:	${OBJS}
+	${AR} ${ARFLAGS} $@ ${OBJS}
+	${RANLIB} $@
+
+.PHONY: info dvi doc install-info clean-info
+info doc dvi:
+install-info:
+clean-info:
+
+Makefile: Makefile.in config.status @host_makefile_frag_path@ \
+	$(SHELL) config.status
+
+config.status: configure
+	$(SHELL) config.status --recheck

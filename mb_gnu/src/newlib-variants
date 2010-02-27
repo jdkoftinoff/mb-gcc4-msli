@@ -1,0 +1,60 @@
+libm    libm_m_bs_p_fps.a
+    -O3 -mno-xl-soft-mul -mxl-barrel-shift -mxl-pattern-compare -mhard-float -D_DOUBLE_IS_32BITS
+libm 	libm_m_bs_p_fpd.a
+    -O3 -mno-xl-soft-mul -mxl-barrel-shift -mxl-pattern-compare -mhard-float
+libm 	libm_m_p_fps.a
+    -O3 -mno-xl-soft-mul -mxl-pattern-compare -mhard-float -D_DOUBLE_IS_32BITS
+libm 	libm_m_p_fpd.a
+    -O3 -mno-xl-soft-mul -mxl-pattern-compare -mhard-float
+libm 	libm_bs_p_fps.a
+    -O3 -mxl-barrel-shift -mxl-pattern-compare -mhard-float -D_DOUBLE_IS_32BITS
+libm 	libm_bs_p_fpd.a
+    -O3 -mxl-barrel-shift -mxl-pattern-compare -mhard-float
+libm 	libm_p_fps.a
+    -O3 -mxl-pattern-compare -mhard-float -D_DOUBLE_IS_32BITS
+libm 	libm_p_fpd.a
+    -O3 -mxl-pattern-compare -mhard-float
+libm 	libm_m_bs_fps.a
+    -O3 -mno-xl-soft-mul -mxl-barrel-shift -mhard-float -D_DOUBLE_IS_32BITS
+libm 	libm_m_bs_fpd.a
+    -O3 -mno-xl-soft-mul -mxl-barrel-shift -mhard-float
+libm 	libm_m_fps.a
+    -O3 -mno-xl-soft-mul -mhard-float -D_DOUBLE_IS_32BITS
+libm 	libm_m_fpd.a
+    -O3 -mno-xl-soft-mul -mhard-float
+libm 	libm_bs_fps.a
+    -O3 -mxl-barrel-shift -mhard-float -D_DOUBLE_IS_32BITS
+libm 	libm_bs_fpd.a
+    -O3 -mxl-barrel-shift -mhard-float
+libm 	libm_fps.a
+    -O3 -mhard-float -D_DOUBLE_IS_32BITS
+libm 	libm_fpd.a
+    -O3 -mhard-float
+libm 	libm_m_bs_p.a
+    -O3 -mno-xl-soft-mul -mxl-barrel-shift -mxl-pattern-compare
+libm	libm_m_p.a
+    -O3 -mno-xl-soft-mul -mxl-pattern-compare
+libm	libm_bs_p.a
+    -O3 -mxl-barrel-shift -mxl-pattern-compare
+libm	libm_p.a
+    -O3 -mxl-pattern-compare
+libm	libm_m_bs.a
+    -O3 -mno-xl-soft-mul -mxl-barrel-shift
+libm	libm_m.a
+    -O3 -mno-xl-soft-mul
+libm	libm_bs.a
+    -O3 -mxl-barrel-shift
+libc	libc_m_bs_p.a
+    -O3 -mno-xl-soft-mul -mxl-barrel-shift -mxl-pattern-compare
+libc	libc_m_p.a
+    -O3 -mno-xl-soft-mul -mxl-pattern-compare
+libc	libc_bs_p.a
+    -O3 -mxl-barrel-shift -mxl-pattern-compare
+libc	libc_p.a
+    -O3 -mxl-pattern-compare
+libc	libc_m_bs.a
+    -O3 -mno-xl-soft-mul -mxl-barrel-shift
+libc	libc_m.a
+    -O3 -mno-xl-soft-mul
+libc	libc_bs.a
+    -O3 -mxl-barrel-shift
