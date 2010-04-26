@@ -517,7 +517,7 @@
 (define_insn "subsi3"
   [(set (match_operand:SI 0 "register_operand" "=d,d,d,d,d")
 	(minus:SI (match_operand:SI 1 "arith_operand" "dJ,dJ,dJ,I,i")
-		  (match_operand:SI 2 "arith_operand" "d,I,i,dJ,dJ")))]
+		  (match_operand:SI 2 "arith_operand" "d,I,M,dJ,dJ")))]
   ""
   "@
    rsubk\t%0,%2,%z1
@@ -801,18 +801,17 @@
 ;;----------------------------------------------------------------
 
 (define_insn "andsi3"
-  [(set (match_operand:SI 0 "register_operand" "=d,d,d,d")
-	(and:SI (match_operand:SI 1 "arith_operand" "%d,d,d,d")
-		(match_operand:SI 2 "arith_operand" "d,I,i,M")))]
+  [(set (match_operand:SI 0 "register_operand" "=d,d,d")
+	(and:SI (match_operand:SI 1 "arith_operand" "%d,d,d")
+		(match_operand:SI 2 "arith_operand" "d,I,i")))]
   ""
   "@
    and\t%0,%1,%2
    andi\t%0,%1,%2 #and1
-   andi\t%0,%1,%2 #and2
-   andi\t%0,%1,%2 #and3"
-  [(set_attr "type"	"arith,arith,no_delay_arith,no_delay_arith")
-  (set_attr "mode"	"SI,SI,SI,SI")
-  (set_attr "length"	"4,8,8,8")])
+   andi\t%0,%1,%2 #and2"
+  [(set_attr "type"	"arith,arith,no_delay_arith")
+  (set_attr "mode"	"SI,SI,SI")
+  (set_attr "length"	"4,8,8")])
 
 
 (define_insn "anddi3"
@@ -840,19 +839,17 @@
   "")
 
 (define_insn "iorsi3"
-  [(set (match_operand:SI 0 "register_operand" "=d,d,d,d")
-	(ior:SI (match_operand:SI 1 "arith_operand" "%d,d,d,d")
-		(match_operand:SI 2 "arith_operand" "d,I,M,i")))]
+  [(set (match_operand:SI 0 "register_operand" "=d,d,d")
+	(ior:SI (match_operand:SI 1 "arith_operand" "%d,d,d")
+		(match_operand:SI 2 "arith_operand" "d,I,i")))]
   ""
   "@
    or\t%0,%1,%2
    ori\t%0,%1,%2
-   ori\t%0,%1,%2
    ori\t%0,%1,%2" 
-  [(set_attr "type"	"arith,no_delay_arith,no_delay_arith,no_delay_arith")
-  (set_attr "mode"	"SI,SI,SI,SI")
-  (set_attr "length"	"4,8,8,8")])
-
+  [(set_attr "type"	"arith,no_delay_arith,no_delay_arith")
+  (set_attr "mode"	"SI,SI,SI")
+  (set_attr "length"	"4,8,8")])
 
 (define_insn "iordi3"
   [(set (match_operand:DI 0 "register_operand" "=d")
@@ -1112,8 +1109,6 @@
   }
 )
 
-
-
 (define_insn "movdi_internal"
   [(set (match_operand:DI 0 "nonimmediate_operand" "=d,d,d,d,d,d,R,m")
 	(match_operand:DI 1 "general_operand"      " d,F,J,i,R,m,d,d"))]
@@ -1198,7 +1193,7 @@
 ;; This move will be not be moved to delay slot.	
 (define_insn "movsi_internal3"
   [(set (match_operand:SI 0 "nonimmediate_operand" "=d,d,d")
-	(match_operand:SI 1 "immediate_operand" "J,I,Mnis"))]
+	(match_operand:SI 1 "immediate_operand" "J,I,nis"))]
   "(register_operand (operands[0], SImode) && 
            (GET_CODE (operands[1]) == CONST_INT && 
                  (INTVAL (operands[1]) <= 32767 && INTVAL(operands[1]) >= -32768)))"  
@@ -1225,7 +1220,7 @@
 
 (define_insn "movsi_internal2"
   [(set (match_operand:SI 0 "nonimmediate_operand" "=d,d,d,   d,d,R, T")
-	(match_operand:SI 1 "move_operand"         " d,I,Mnis,R,m,dJ,dJ"))]
+	(match_operand:SI 1 "move_operand"         " d,I,nis,R,m,dJ,dJ"))]
   "!TARGET_DEBUG_H_MODE
    && (register_operand (operands[0], SImode)
        || register_operand (operands[1], SImode) 

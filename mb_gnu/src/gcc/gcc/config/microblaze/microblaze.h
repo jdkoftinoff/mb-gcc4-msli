@@ -1082,30 +1082,6 @@ extern enum reg_class microblaze_char_to_class[];
 
 #define REG_CLASS_FROM_LETTER(C) microblaze_char_to_class[(C)]
 
-/* The letters I, J, K, L, M, N, O, and P in a register constraint
-   string can be used to stand for particular ranges of immediate
-   operands.  This macro defines what the ranges are.  C is the
-   letter, and VALUE is a constant value.  Return 1 if VALUE is
-   in the range specified by C.  */
-
-/* 
-`I'	is used for the range of constants an arithmetic insn can
-actually contain (16 bits signed integers).
-
-`J'	is used for the range which is just zero (ie, $r0).
-
-'K'	is used for positive numbers.
-
-'L'	is used for negative numbers.
-
-`M'	is used for the range of constants that take two words to load.
-
-`N'	is used for negative 16 bit constants other than -65536.
-
-`O'	is a 15 bit signed integer.
-
-`P'	is used for positive 16 bit constants.  */
-
 #define SMALL_INT(X) ((unsigned HOST_WIDE_INT) (INTVAL (X) + 0x8000) < 0x10000)
 #define SMALL_INT_UNSIGNED(X) ((unsigned HOST_WIDE_INT) (INTVAL (X)) < 0x10000)
 #define PLT_ADDR_P(X) (GET_CODE (X) == UNSPEC && XINT (X,1) == UNSPEC_PLT)
@@ -1118,21 +1094,39 @@ actually contain (16 bits signed integers).
                              && ! (REGNO (X) >= FIRST_PSEUDO_REGISTER	\
                              && REGNO (X) <= LAST_VIRTUAL_REGISTER)))
 
-/* Deifinition of K changed for MicroBlaze specific code */
+/* The letters I, J, K, L, M, N, O, and P in a register constraint
+   string can be used to stand for particular ranges of immediate
+   operands.  This macro defines what the ranges are.  C is the
+   letter, and VALUE is a constant value.  Return 1 if VALUE is
+   in the range specified by C.  
 
+`I'	is used for the range of 16-bit integer constants 
+        an arithmetic insn can contain.
+
+`J'	is used for zero (== r0).
+
+'K'	is used for positive numbers.
+
+'L'	is used for negative numbers.
+
+`M'	is used for the 32-bit integer constants 
+        (take two instructions to load). 
+
+`N'	is used for negative 16 bit constants other than -65536.
+
+`O'	is a 15 bit signed integer.
+
+`P'	is used for positive 16 bit constants.  
+*/
 #define CONST_OK_FOR_LETTER_P(VALUE, C)					\
   ((C) == 'I' ? ((unsigned HOST_WIDE_INT) ((VALUE) + 0x8000) < 0x10000)	\
    : (C) == 'J' ? ((VALUE) == 0)					\
    : (C) == 'K' ? ((VALUE) > 0)					\
    : (C) == 'L' ? ((VALUE) < 0)					\
-   : (C) == 'M' ? ((((VALUE) & ~0x0000ffff) != 0)			\
-		   && (((VALUE) & ~0x0000ffff) != ~0x0000ffff)		\
-		   && (((VALUE) & 0x0000ffff) != 0			\
-		       || (((VALUE) & ~2147483647) != 0			\
-			   && ((VALUE) & ~2147483647) != ~2147483647)))	\
+   : (C) == 'M' ? (!((unsigned HOST_WIDE_INT) ((VALUE) + 0x8000) < 0x10000)) \
    : (C) == 'N' ? ((unsigned HOST_WIDE_INT) ((VALUE) + 0xffff) < 0xffff) \
    : (C) == 'O' ? ((unsigned HOST_WIDE_INT) ((VALUE) + 0x4000) < 0x8000) \
-   : (C) == 'P' ? ((VALUE) != 0 && (((VALUE) & ~0x0000ffff) == 0))	\
+   : (C) == 'P' ? ((VALUE) != 0 && (((VALUE) & 0xFFFF0000) == 0))	\
    : 0)
 
 /* Similar, but for floating constants, and defining letters G and H.
