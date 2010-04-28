@@ -2050,7 +2050,8 @@ md_estimate_size_before_relax (register fragS * fragP,
          as_bad(_("Absolute PC-relative value in relaxation code.  Assembler error....."));
          abort();
       }
-      else if ((S_GET_SEGMENT (fragP->fr_symbol) == segment_type))
+      else if (S_GET_SEGMENT (fragP->fr_symbol) == segment_type && 
+               !S_IS_WEAK (fragP->fr_symbol))
       {
          fragP->fr_subtype = DEFINED_PC_OFFSET;
          /* Don't know now whether we need an imm instruction */
