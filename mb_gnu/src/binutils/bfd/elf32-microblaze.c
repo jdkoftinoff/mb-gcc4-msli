@@ -3002,7 +3002,8 @@ microblaze_elf_add_symbol_hook (bfd *abfd,
 
 #define TARGET_BIG_SYM          bfd_elf32_microblaze_vec
 #define TARGET_BIG_NAME		"elf32-microblaze"
-
+#define TARGET_LITTLE_SYM       bfd_elf32_microblazele_vec
+#define TARGET_LITTLE_NAME      "elf32-microblazele"
 #define ELF_ARCH		bfd_arch_microblaze
 #define ELF_MACHINE_CODE	EM_MICROBLAZE
 #define ELF_MAXPAGESIZE		0x4   		/* 4k, if we ever have 'em */

@@ -605,6 +605,7 @@ extern const bfd_target bfd_elf32_m88k_vec;
 extern const bfd_target bfd_elf32_mcore_big_vec;
 extern const bfd_target bfd_elf32_mcore_little_vec;
 extern const bfd_target bfd_elf32_microblaze_vec;
+extern const bfd_target bfd_elf32_microblazele_vec;
 extern const bfd_target bfd_elf32_mn10200_vec;
 extern const bfd_target bfd_elf32_mn10300_vec;
 extern const bfd_target bfd_elf32_mt_vec;
