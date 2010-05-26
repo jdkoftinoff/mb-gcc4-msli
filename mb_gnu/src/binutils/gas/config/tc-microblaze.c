@@ -2306,6 +2306,7 @@ md_parse_option (int c, char * arg ATTRIBUTE_UNUSED)
 	   target_big_endian = 1;
 	   set_target_endian = 1;
          }
+       break;
      default:
        return 0;
      }
