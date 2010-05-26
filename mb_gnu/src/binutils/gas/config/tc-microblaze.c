@@ -67,6 +67,13 @@ void microblaze_generate_symbol (char *sym);
 static bfd_boolean check_spl_reg (unsigned *);
 
 extern char *demand_copy_string PARAMS ((int *lenP));
+
+/* Tell the main code what the endianness is.  */
+extern int target_big_endian;
+
+/* Whether or not, we've set target_big_endian.  */
+static int set_target_endian = 0;
+
 /* Several places in this file insert raw instructions into the
    object. They should generate the instruction
    and then use these four macros to crack the instruction value into
@@ -423,6 +430,14 @@ void
 md_begin ()
 {
    struct op_code_struct * opcode;
+
+   /* Tell the main code what the endianness is if it is not overridden
+      by the user. */
+   if (!set_target_endian)
+     {
+       set_target_endian = 1;
+       target_big_endian = MB_BIG_ENDIAN;
+     }
 
    opcode_hash_control = hash_new ();
 
@@ -1641,14 +1656,12 @@ md_atof (int type, char * litP, int * sizeP)
   
    return 0;
 }
-
-CONST char * md_shortopts = "";
 
-/*#define OPTION_DONT_USE_SMALL	(OPTION_MD_BASE + 0)*/
+CONST char * md_shortopts = "";
 
 struct option md_longopts[] =
 {
-   { NULL,          no_argument, NULL, 0}
+   { NULL, no_argument, NULL, 0}
 };
 
 size_t md_longopts_size = sizeof (md_longopts);
@@ -2279,19 +2292,33 @@ tc_gen_reloc (asection * section ATTRIBUTE_UNUSED, fixS * fixp)
 int
 md_parse_option (int c, char * arg ATTRIBUTE_UNUSED)
 {
-   switch (c) {
-   default:
-      return 0;
-   }
+   switch (c) 
+     {
+     case 'm':
+       /* -mlittle-endian/-mbig-endian sets the endianess.  */
+       if (strcmp (arg, "little-endian") == 0)
+         {
+           target_big_endian = 0;
+           set_target_endian = 1;
+         }
+       else if (strcmp (arg, "big-endian") == 0)
+         {
+	   target_big_endian = 1;
+	   set_target_endian = 1;
+         }
+     default:
+       return 0;
+     }
+   
    return 1;
 }
 
 void
-md_show_usage (FILE * stream ATTRIBUTE_UNUSED)
+md_show_usage (FILE * stream)
 {
-   /*  fprintf(stream, _("\
-       MicroBlaze options:\n\
-       -noSmall         Data in the comm and data sections do not go into the small data section\n")); */
+    fprintf (stream, _(" ARM-specific assembler options:\n"));
+    fprintf (stream, "  -%-23s%s\n", "-mbig-endian", N_("assemble for a big endian cpu"));
+    fprintf (stream, "  -%-23s%s\n", "-mlittle-endian", N_("assemble for a little endian cpu"));    
 }
 
 

@@ -46,8 +46,17 @@
 
 
 #define TARGET_ARCH	bfd_arch_microblaze
+
 /* Used to initialise target_big_endian.  */
+#ifndef TARGET_BYTES_BIG_ENDIAN
 #define TARGET_BYTES_BIG_ENDIAN 1
+#endif
+
+#if TARGET_BYTES_BIG_ENDIAN
+#define MB_BIG_ENDIAN   1
+#else
+#define MB_BIG_ENDIAN   0
+#endif
 
 #define IGNORE_NONSTANDARD_ESCAPES
 
