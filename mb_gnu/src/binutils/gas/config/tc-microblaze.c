@@ -1657,7 +1657,7 @@ md_atof (int type, char * litP, int * sizeP)
    return 0;
 }
 
-CONST char * md_shortopts = "";
+CONST char * md_shortopts = "m:";
 
 struct option md_longopts[] =
 {
@@ -2318,8 +2318,8 @@ void
 md_show_usage (FILE * stream)
 {
     fprintf (stream, _(" ARM-specific assembler options:\n"));
-    fprintf (stream, "  -%-23s%s\n", "-mbig-endian", N_("assemble for a big endian cpu"));
-    fprintf (stream, "  -%-23s%s\n", "-mlittle-endian", N_("assemble for a little endian cpu"));    
+    fprintf (stream, "  -%-23s%s\n", "mbig-endian", N_("assemble for a big endian cpu"));
+    fprintf (stream, "  -%-23s%s\n", "mlittle-endian", N_("assemble for a little endian cpu"));    
 }
 
 
