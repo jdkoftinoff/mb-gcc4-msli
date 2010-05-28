@@ -6,8 +6,12 @@ reference-release/*
 src/sdk_version.h
 src/gcc/gcc/DEV-PHASE
 src/binutils/gas/doc/as.info*
+src/binutils/gas/doc/internals*
 src/binutils/bfd/doc/bfd.info*
+src/binutils/ld/ldint
 *.swp
 *.orig
 *.rej
 00*
+*cscope.out
+*a.out
