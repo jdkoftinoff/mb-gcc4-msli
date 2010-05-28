@@ -77,14 +77,14 @@ install: ${CRT} ${LIB}
 	$(INSTALL_PROGRAM) ${LIB} $(DESTDIR)$(tooldir)/lib${MULTISUBDIR}
 	$(INSTALL_PROGRAM) $(srcdir)/${SCRIPTS} $(DESTDIR)$(tooldir)/lib/
 
-crt0.o:	crt0.s
-crt1.o:	crt1.s
-crt2.o:	crt2.s
-crt3.o:	crt3.s
-crt4.o:	crt4.s
-crtinit.o: crtinit.s
-sim-crtinit.o: sim-crtinit.s
-sim-pgcrtinit.o: sim-pgcrtinit.s
+crt0.o:	crt0.S
+crt1.o:	crt1.S
+crt2.o:	crt2.S
+crt3.o:	crt3.S
+crt4.o:	crt4.S
+crtinit.o: crtinit.S
+sim-crtinit.o: sim-crtinit.S
+sim-pgcrtinit.o: sim-pgcrtinit.S
 
 clean mostlyclean:
 	rm -f *.o *.a *.map *.x
