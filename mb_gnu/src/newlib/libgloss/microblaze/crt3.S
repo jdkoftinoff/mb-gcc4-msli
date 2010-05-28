@@ -1,33 +1,30 @@
-###################################-*-asm*- 
-# 
-# Copyright (c) 2001 Xilinx, Inc.  All rights reserved. 
-# 
-# Xilinx, Inc.  
-#
-# XILINX IS PROVIDING THIS DESIGN, CODE, OR INFORMATION "AS IS" AS A 
-# COURTESY TO YOU.  BY PROVIDING THIS DESIGN, CODE, OR INFORMATION AS
-# ONE POSSIBLE   IMPLEMENTATION OF THIS FEATURE, APPLICATION OR 
-# STANDARD, XILINX IS MAKING NO REPRESENTATION THAT THIS IMPLEMENTATION
-# IS FREE FROM ANY CLAIMS OF INFRINGEMENT, AND YOU ARE RESPONSIBLE 
-# FOR OBTAINING ANY RIGHTS YOU MAY REQUIRE FOR YOUR IMPLEMENTATION.  
-# XILINX EXPRESSLY DISCLAIMS ANY WARRANTY WHATSOEVER WITH RESPECT TO 
-# THE ADEQUACY OF THE IMPLEMENTATION, INCLUDING BUT NOT LIMITED TO 
-# ANY WARRANTIES OR REPRESENTATIONS THAT THIS IMPLEMENTATION IS FREE 
-# FROM CLAIMS OF INFRINGEMENT, IMPLIED WARRANTIES OF MERCHANTABILITY 
-# AND FITNESS FOR A PARTICULAR PURPOSE.
-# 
-# crt4.s 
-# 
-# Default C run-time initialization for MicroBlaze Xilkernel ELF process images,
-# compiled with -xl-mode-xilkernel (deprecated)
-#
-# $Id: crt4.s,v 1.6.2.6 2005/11/15 23:32:53 salindac Exp $
-# 
-#######################################
+/*
+ * Copyright (c) 2010 Xilinx, Inc.  All rights reserved. 
+ * 
+ * Xilinx, Inc.  
+ *
+ * XILINX IS PROVIDING THIS DESIGN, CODE, OR INFORMATION "AS IS" AS A 
+ * COURTESY TO YOU.  BY PROVIDING THIS DESIGN, CODE, OR INFORMATION AS
+ * ONE POSSIBLE   IMPLEMENTATION OF THIS FEATURE, APPLICATION OR 
+ * STANDARD, XILINX IS MAKING NO REPRESENTATION THAT THIS IMPLEMENTATION
+ * IS FREE FROM ANY CLAIMS OF INFRINGEMENT, AND YOU ARE RESPONSIBLE 
+ * FOR OBTAINING ANY RIGHTS YOU MAY REQUIRE FOR YOUR IMPLEMENTATION.  
+ * XILINX EXPRESSLY DISCLAIMS ANY WARRANTY WHATSOEVER WITH RESPECT TO 
+ * THE ADEQUACY OF THE IMPLEMENTATION, INCLUDING BUT NOT LIMITED TO 
+ * ANY WARRANTIES OR REPRESENTATIONS THAT THIS IMPLEMENTATION IS FREE 
+ * FROM CLAIMS OF INFRINGEMENT, IMPLIED WARRANTIES OF MERCHANTABILITY 
+ * AND FITNESS FOR A PARTICULAR PURPOSE.
+ * 
+ * crt3.S 
+ * 
+ * C run-time for MicroBlaze applications that do not want vectors (compiled
+ * with -xl-mode-novectors)
+ * 
+ */
 
 /*
         
-        MicroBlaze Vector Map for Xilkernel ELF process images
+        MicroBlaze Vector Map for vector-less ELF images
 
          Address                Vector type                 Label
          -------                -----------                 ------    
@@ -67,9 +64,8 @@ _start:
         addik   r5, r3, 0                   
 
         /* Control does not reach here */
-
         .end _start
-
+    
 
 /* 
         _exit 
@@ -80,6 +76,5 @@ _start:
         .ent _exit
         .type _exit, @function
 _exit:
-    	brlid	r15,elf_process_exit    
-        nop 
+        bri     0
 	.end _exit        

@@ -1,38 +1,37 @@
-###################################-*-asm*- 
-# 
-# Copyright (c) 2001 Xilinx, Inc.  All rights reserved. 
-# 
-# Xilinx, Inc.  
-#
-# XILINX IS PROVIDING THIS DESIGN, CODE, OR INFORMATION "AS IS" AS A 
-# COURTESY TO YOU.  BY PROVIDING THIS DESIGN, CODE, OR INFORMATION AS
-# ONE POSSIBLE   IMPLEMENTATION OF THIS FEATURE, APPLICATION OR 
-# STANDARD, XILINX IS MAKING NO REPRESENTATION THAT THIS IMPLEMENTATION
-# IS FREE FROM ANY CLAIMS OF INFRINGEMENT, AND YOU ARE RESPONSIBLE 
-# FOR OBTAINING ANY RIGHTS YOU MAY REQUIRE FOR YOUR IMPLEMENTATION.  
-# XILINX EXPRESSLY DISCLAIMS ANY WARRANTY WHATSOEVER WITH RESPECT TO 
-# THE ADEQUACY OF THE IMPLEMENTATION, INCLUDING BUT NOT LIMITED TO 
-# ANY WARRANTIES OR REPRESENTATIONS THAT THIS IMPLEMENTATION IS FREE 
-# FROM CLAIMS OF INFRINGEMENT, IMPLIED WARRANTIES OF MERCHANTABILITY 
-# AND FITNESS FOR A PARTICULAR PURPOSE.
-# 
-# crt2.s 
-# 
-# Default C run-time initialization for MicroBlaze standalone 
-# executables that are boot-strapped (-xl-mode-bootstrap)
-#    
-# $Id: crt2.s,v 1.3.2.6 2005/11/15 23:32:53 salindac Exp $
-# 
-#######################################
+/*
+ * 
+ * Copyright (c) 2010 Xilinx, Inc.  All rights reserved. 
+ * 
+ * XILINX IS PROVIDING THIS DESIGN, CODE, OR INFORMATION "AS IS" AS A 
+ * COURTESY TO YOU.  BY PROVIDING THIS DESIGN, CODE, OR INFORMATION AS
+ * ONE POSSIBLE   IMPLEMENTATION OF THIS FEATURE, APPLICATION OR 
+ * STANDARD, XILINX IS MAKING NO REPRESENTATION THAT THIS IMPLEMENTATION
+ * IS FREE FROM ANY CLAIMS OF INFRINGEMENT, AND YOU ARE RESPONSIBLE 
+ * FOR OBTAINING ANY RIGHTS YOU MAY REQUIRE FOR YOUR IMPLEMENTATION.  
+ * XILINX EXPRESSLY DISCLAIMS ANY WARRANTY WHATSOEVER WITH RESPECT TO 
+ * THE ADEQUACY OF THE IMPLEMENTATION, INCLUDING BUT NOT LIMITED TO 
+ * ANY WARRANTIES OR REPRESENTATIONS THAT THIS IMPLEMENTATION IS FREE 
+ * FROM CLAIMS OF INFRINGEMENT, IMPLIED WARRANTIES OF MERCHANTABILITY 
+ * AND FITNESS FOR A PARTICULAR PURPOSE.
+ *
+ * crt1.S 
+ * 
+ * Default C run-time initialization for MicroBlaze standalone 
+ * executables compiled with -xl-mode-xmdstub for 
+ * debugging with XMDSTUB 
+ *    
+ */
+
 
 /*
         
-        MicroBlaze Vector Map for standalone executables that are boot-strapped
+        MicroBlaze Vector Map for standalone executables
+        downloaded and executed with XMDSTUB
 
          Address                Vector type                 Label
-         -------                -----------                 ------    
-
-    	# 0x00 #		(-- IMM --)
+         -------                -----------                 ------        
+       
+	# 0x00 #		(-- IMM --)
 	# 0x04 #                Reset                       (-- Don't Care --)
     
 	# 0x08 #		(-- IMM --)
@@ -49,6 +48,7 @@
 
 */      
     
+
         .section .vectors.sw_exception, "ax"
         .align 2
 _vector_sw_exception:       
@@ -79,10 +79,10 @@ _start:
 
         brlid   r15, exit                   /* Call exit with the return value of main */
         addik   r5, r3, 0                   
-       
+
         /* Control does not reach here */
-    
-        .end _start
+        .end _start    
+
     
 /* 
         _exit 
@@ -93,5 +93,7 @@ _start:
         .ent _exit
         .type _exit, @function
 _exit:
-        bri     0
+	add	r3, r0, r5
+	brki    r16, 0x4                    /* Return to hook in XMDSTUB  */    
 	.end _exit        
+
