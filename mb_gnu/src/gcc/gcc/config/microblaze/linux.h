@@ -62,7 +62,9 @@
     %{!static: \
       %{rdynamic:-export-dynamic} \
       %{!dynamic-linker:-dynamic-linker %(dynamic_linker)}} \
-    %{static:-static}}"
+    %{static:-static}} \
+  %{mbig-endian:-EB --oformat=elf32-microblaze} \
+  %{mlittle-endian:-EL --oformat=elf32-microblazele}"
 
 #undef FUNCTION_PROFILER
 #define FUNCTION_PROFILER(FILE, LABELNO) {                              \

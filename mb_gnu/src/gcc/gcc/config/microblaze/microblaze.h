@@ -167,12 +167,10 @@ extern char *microblaze_no_clearbss;
 /* Default target_flags if no switches are specified  */
 #define TARGET_DEFAULT      (MASK_SOFT_MUL | MASK_SOFT_DIV | MASK_SOFT_FLOAT)
 
+#define	TARGET_BIG_ENDIAN   (!TARGET_LITTLE_ENDIAN)
+
 #ifndef TARGET_CPU_DEFAULT
 #define TARGET_CPU_DEFAULT 0
-#endif
-
-#ifndef TARGET_ENDIAN_DEFAULT
-#define TARGET_ENDIAN_DEFAULT MASK_BIG_ENDIAN
 #endif
 
 /* What is the default setting for -mcpu= . We set it to v4.00.a even though 
@@ -180,17 +178,10 @@ extern char *microblaze_no_clearbss;
    for the original ISA */
 #define MICROBLAZE_DEFAULT_CPU      "v4.00.a"               
 
-#define LINKER_ENDIAN_SPEC ""
-
 /* Macros to decide whether certain features are available or not,
    depending on the instruction set architecture level.  */
 
 #define HAVE_SQRT_P()		0
-
-/* 
-   The gen* programs link code that refers to MASK_64BIT.  They don't
-   actually use the information in target_flags; they just refer to
-   it.  */
 
 /* Switch  Recognition by gcc.c.  Add -G xx support */
 
@@ -270,8 +261,21 @@ while (0)
 #define TARGET_CPU_CPP_BUILTINS()				\
   do								\
     {								\
+                                                                \
+        if (BYTES_BIG_ENDIAN)                                   \
+	  {                                                     \
+              builtin_define ("__BIG_ENDIAN__");                \
+              builtin_define ("_BIG_ENDIAN");                   \
+              builtin_assert ("machine=bigendian");             \
+          }                                                     \
+        else                                                    \
+          {                                                     \
+              builtin_define ("__LITTLE_ENDIAN__");             \
+              builtin_define ("_LITTLE_ENDIAN");                \
+              builtin_assert ("machine=littleendian");          \
+          }                                                     \
+                                                                \
         builtin_define ("microblaze");                          \
-        builtin_define ("_BIG_ENDIAN");                         \
         builtin_define ("__MICROBLAZE__");                      \
                                                                 \
         builtin_assert ("system=unix");                         \
@@ -356,27 +360,17 @@ while (0)
 /* ASM_SPEC is the set of arguments to pass to the assembler.  */
 
 #define ASM_SPEC "\
-%{microblaze1} \
 %(target_asm_spec) \
-%(subtarget_asm_spec)"
-
-/* Specify to run a post-processor, microblaze-tfile after the assembler
-   has run to stuff the microblaze debug information into the object file.
-   This is needed because the $#!%^ MICROBLAZE assembler provides no way
-   of specifying such information in the assembly file.  If we are
-   cross compiling, disable microblaze-tfile unless the user specifies
-   -mmicroblaze-tfile.  */
-
-#ifndef ASM_FINAL_SPEC
-#define ASM_FINAL_SPEC ""
-#endif	/* ASM_FINAL_SPEC */
+%(subtarget_asm_spec) \
+%{mlittle-endian:-mlittle-endian; \
+  mbig-endian:-mbig-endian}"
 
 /* Extra switches sometimes passed to the linker.  */
-/* ??? The bestGnum will never be passed to the linker, because the gcc driver
-   will interpret it as a -b option.  */
-
-#define LINK_SPEC "%{shared:-shared} -N -relax %{Zxl-mode-xmdstub:-defsym _TEXT_START_ADDR=0x800} \
-  %{mxl-gp-opt:%{G*}} %{!mxl-gp-opt: -G 0} %{!Wl,-T*: %{!T*: -T xilinx.ld%s}}"
+#define LINK_SPEC "%{shared:-shared} \
+%{mbig-endian:-EB --oformat=elf32-microblaze} \
+%{mlittle-endian:-EL --oformat=elf32-microblazele} \
+-N -relax %{Zxl-mode-xmdstub:-defsym _TEXT_START_ADDR=0x800}          \
+%{mxl-gp-opt:%{G*}} %{!mxl-gp-opt: -G 0} %{!Wl,-T*: %{!T*: -T xilinx.ld%s}}"
 
 /* Specs for the compiler proper */
 
@@ -450,7 +444,6 @@ while (0)
   { "subtarget_asm_optimizing_spec", SUBTARGET_ASM_OPTIMIZING_SPEC },	\
   { "subtarget_asm_debugging_spec", SUBTARGET_ASM_DEBUGGING_SPEC },	\
   { "subtarget_asm_spec", SUBTARGET_ASM_SPEC },				\
-  { "linker_endian_spec", LINKER_ENDIAN_SPEC },				\
   SUBTARGET_EXTRA_SPECS
 
 /* If defined, this macro is an additional prefix to try after
@@ -572,17 +565,18 @@ while (0)
 
 /* Define this if most significant bit is lowest numbered
    in instructions that operate on numbered bit-fields.  */
-#define BITS_BIG_ENDIAN 0
+#define BITS_BIG_ENDIAN  0
 
-/* Define this if most significant byte of a word is the lowest numbered. */
-#define BYTES_BIG_ENDIAN 1
-
-/* Define this if most significant word of a multiword number is the lowest. */
-#define WORDS_BIG_ENDIAN 1
+#define	BYTES_BIG_ENDIAN (TARGET_BIG_ENDIAN)
+#define	WORDS_BIG_ENDIAN (TARGET_BIG_ENDIAN)
 
 /* Define this to set the endianness to use in libgcc2.c, which can
    not depend on target_flags.  */
+#if defined(__LITTLE_ENDIAN__)
+#define LIBGCC2_WORDS_BIG_ENDIAN 0
+#else
 #define LIBGCC2_WORDS_BIG_ENDIAN 1
+#endif
 
 /* Number of bits in an addressable storage unit */
 #define BITS_PER_UNIT           8
@@ -2542,3 +2536,5 @@ void FN (void)                                                                  
 } \
 %(startfile_crtinit)"
 
+#undef	MULTILIB_DEFAULTS
+#define	MULTILIB_DEFAULTS { "mbig-endian" }

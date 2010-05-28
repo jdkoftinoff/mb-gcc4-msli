@@ -19,6 +19,14 @@
 ; Software Foundation, 51 Franklin Street, Fifth Floor, Boston, MA
 ; 02110-1301, USA.
 
+mlittle-endian
+Target Report RejectNegative Mask(LITTLE_ENDIAN)
+Produce little endian code
+
+mbig-endian
+Target Report RejectNegative InverseMask(LITTLE_ENDIAN)
+Produce big endian code
+
 mxl-soft-mul
 Target Mask(SOFT_MUL)
 Use the soft multiply emulation (default)
@@ -87,11 +95,11 @@ Target Mask(DEBUG_I_MODE) Undocumented
 
 mcpu=
 Target RejectNegative Joined Var(microblaze_select_cpu)
--mcpu=PROCESSOR		Use features of and schedule code for given CPU
+-mcpu=vX.YY.Z Use features of and schedule code for given CPU
 
 mtune=
 Target RejectNegative Joined Var(microblaze_select_tune)
--mtune=PROCESSOR	Tune code for sub-configuration
+-mtune=PROCESSOR Tune code for sub-configuration
 
 mno-clearbss
 Target RejectNegative
