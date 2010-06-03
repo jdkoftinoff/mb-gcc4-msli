@@ -1,0 +1,23 @@
+#
+# libm
+#
+
+le          ../libm_le.a                    libm.a
+bs/le       ../../libm_le_bs.a              libm.a
+bs/m/le     ../../../libm_le_m_bs.a         libm.a
+m/le        ../../libm_le_m.a               libm.a
+bs          ../libm_bs.a                    libm.a
+bs/m        ../../libm_m_bs.a               libm.a
+m           ../libm_m.a                     libm.a
+
+#
+# libc
+#
+
+le          ../libc_le.a                    libc.a
+bs/le       ../../libc_le_bs.a              libc.a
+bs/m/le     ../../../libc_le_m_bs.a         libc.a
+m/le        ../../libc_le_m.a               libc.a
+bs          ../libc_bs.a                    libc.a
+bs/m        ../../libc_m_bs.a               libc.a
+m           ../libc_m.a                     libc.a

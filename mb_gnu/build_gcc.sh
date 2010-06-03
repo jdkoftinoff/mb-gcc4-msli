@@ -83,18 +83,6 @@ if [ $NOBUILD = 0 ]; then
       > $BLDDIR/log/gcc-install.log 2>&1
   rc=$?
   print_err " rc = " $rc
-
-  echo "Building newlib variants..."
-  while read LIB NAME ; do
-      read FLAGS
-      make -C $BLDDIR/build/$TARGET/newlib/$LIB clean 	\
-	  >> $BLDDIR/log/libs-make.log 2>&1
-      make -C $BLDDIR/build/$TARGET/newlib/$LIB CFLAGS="$FLAGS" AR_FLAGS=rc   \
-	  >> $BLDDIR/log/libs-make.log 2>&1
-      print_err "   install $NAME -- rc = " $?
-      mv $BLDDIR/build/$TARGET/newlib/$LIB/$LIB.a $RELDIR/$TARGET/lib/$NAME   \
-	  >> $BLDDIR/log/libs-make.log 2>&1
-  done < $SRCDIR/$LIB_VARIANTS
 fi
 
 cd $CURDIR

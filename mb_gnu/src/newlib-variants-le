@@ -1,0 +1,48 @@
+libm 	libm_le_m_bs_p_fpd.a
+    -O3 -mlittle-endian -mno-xl-soft-mul -mxl-barrel-shift -mxl-pattern-compare -mhard-float
+libm 	libm_le_m_p_fpd.a
+    -O3 -mlittle-endian -mno-xl-soft-mul -mxl-pattern-compare -mhard-float
+libm 	libm_le_bs_p_fpd.a
+    -O3 -mlittle-endian -mxl-barrel-shift -mxl-pattern-compare -mhard-float
+libm 	libm_le_p_fpd.a
+    -O3 -mlittle-endian -mxl-pattern-compare -mhard-float
+libm 	libm_le_m_bs_fpd.a
+    -O3 -mlittle-endian -mno-xl-soft-mul -mxl-barrel-shift -mhard-float
+libm 	libm_le_m_fpd.a
+    -O3 -mlittle-endian -mno-xl-soft-mul -mhard-float
+libm 	libm_le_bs_fpd.a
+    -O3 -mlittle-endian -mxl-barrel-shift -mhard-float
+libm 	libm_le_fpd.a
+    -O3 -mlittle-endian -mhard-float
+libm 	libm_le_m_bs_p.a
+    -O3 -mlittle-endian -mno-xl-soft-mul -mxl-barrel-shift -mxl-pattern-compare
+libm	libm_le_m_p.a
+    -O3 -mlittle-endian -mno-xl-soft-mul -mxl-pattern-compare
+libm	libm_le_bs_p.a
+    -O3 -mlittle-endian -mxl-barrel-shift -mxl-pattern-compare
+libm	libm_le_p.a
+    -O3 -mlittle-endian -mxl-pattern-compare
+libm	libm_le_m_bs.a
+    -O3 -mlittle-endian -mno-xl-soft-mul -mxl-barrel-shift
+libm	libm_le_m.a
+    -O3 -mlittle-endian -mno-xl-soft-mul
+libm	libm_le_bs.a
+    -O3 -mlittle-endian -mxl-barrel-shift
+libm	libm_le.a
+    -O3 -mlittle-endian
+libc	libc_le_m_bs_p.a
+    -O3 -mlittle-endian -mno-xl-soft-mul -mxl-barrel-shift -mxl-pattern-compare
+libc	libc_le_m_p.a
+    -O3 -mlittle-endian -mno-xl-soft-mul -mxl-pattern-compare
+libc	libc_le_bs_p.a
+    -O3 -mlittle-endian -mxl-barrel-shift -mxl-pattern-compare
+libc	libc_le_p.a
+    -O3 -mlittle-endian -mxl-pattern-compare
+libc	libc_le_m_bs.a
+    -O3 -mlittle-endian -mno-xl-soft-mul -mxl-barrel-shift
+libc	libc_le_m.a
+    -O3 -mlittle-endian -mno-xl-soft-mul
+libc	libc_le_bs.a
+    -O3 -mlittle-endian -mxl-barrel-shift
+libc	libc_le.a
+    -O3 -mlittle-endian
