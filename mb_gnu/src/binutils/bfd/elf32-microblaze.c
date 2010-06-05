@@ -73,8 +73,14 @@ static bfd_boolean
 microblaze_elf_finish_dynamic_sections PARAMS((bfd *, struct bfd_link_info *));
 static bfd_boolean 
 create_got_section PARAMS((bfd *, struct bfd_link_info *));
-static void microblaze_bfd_write_imm_value_32 PARAMS((bfd *abfd, bfd_byte *bfd_addr, bfd_vma val)); 
-static void microblaze_bfd_write_imm_value_64 PARAMS((bfd *abfd, bfd_byte *bfd_addr, bfd_vma val));
+static void microblaze_bfd_write_imm_value_32 PARAMS((bfd *abfd, 
+                                                      bfd_byte *bfd_addr, 
+                                                      bfd_vma val));  
+static void microblaze_bfd_write_imm_value_64 PARAMS((bfd *abfd, 
+                                                      bfd_byte *bfd_addr, 
+                                                      bfd_vma val));
+static bfd_boolean microblaze_elf_merge_private_bfd_data PARAMS((bfd * ibfd, 
+                                                                 bfd * obfd));
 
 static int ro_small_data_pointer = 0;
 static int rw_small_data_pointer = 0;
@@ -1192,7 +1198,20 @@ microblaze_elf_relocate_section (bfd *output_bfd,
 
    return ret;
 }
-
+
+/* Merge backend specific data from an object file to the output
+   object file when linking.  
+
+   Note: We only use this hook to catch endian mismatches */
+static bfd_boolean
+microblaze_elf_merge_private_bfd_data (bfd * ibfd, bfd * obfd)
+{
+  /* Check if we have the same endianess.  */
+  if (! _bfd_generic_verify_endian_match (ibfd, obfd))
+    return FALSE;
+
+  return TRUE;
+}
 
 /* Set the values of the small data pointers */
 static void
@@ -3039,6 +3058,8 @@ microblaze_bfd_write_imm_value_64 (bfd *abfd, bfd_byte *bfd_addr, bfd_vma val)
 #define bfd_elf32_bfd_is_local_label_name       microblaze_elf_is_local_label_name
 #define elf_backend_relocate_section		microblaze_elf_relocate_section
 #define bfd_elf32_bfd_relax_section             microblaze_elf_relax_section
+
+#define bfd_elf32_bfd_merge_private_bfd_data	microblaze_elf_merge_private_bfd_data
 
 /*#define bfd_elf32_bfd_set_private_flags		microblaze_elf_set_private_flags*/
 
