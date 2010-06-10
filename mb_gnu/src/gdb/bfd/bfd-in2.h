@@ -1346,6 +1346,12 @@ typedef struct bfd_section
      a previous linker relaxation pass.  */
   bfd_size_type rawsize;
 
+  /* Relaxation table. */
+  struct relax_table *relax;
+
+  /* Count of used relaxation table entries. */
+  int relax_count;
+
   /* If this section is going to be output, then this value is the
      offset in *bytes* into the output section of the first byte in the
      input section (byte ==> smallest addressable unit on the
@@ -1434,6 +1440,17 @@ typedef struct bfd_section
     struct bfd_section *s;
   } map_head, map_tail;
 } asection;
+
+/* Relax table contains information about instructions which can
+   be removed by relaxation -- replacing a long address with a 
+   short address.  */
+struct relax_table {
+  /* Address where bytes may be deleted. */
+  bfd_vma addr;
+  
+  /* Number of bytes to be deleted.  */
+  int size;
+};
 
 /* These sections are global, and are managed by BFD.  The application
    and target back end are not permitted to change the values in
@@ -1570,8 +1587,8 @@ extern asection bfd_ind_section;
   /* has_gp_reloc, need_finalize_relax, reloc_done,                */  \
      0,            0,                   0,                             \
                                                                        \
-  /* vma, lma, size, rawsize                                       */  \
-     0,   0,   0,    0,                                                \
+  /* vma, lma, size, rawsize, relax, relax_count,                  */  \
+     0,   0,   0,    0,       0,     0,                                \
                                                                        \
   /* output_offset, output_section,              alignment_power,  */  \
      0,             (struct bfd_section *) &SEC, 0,                    \
@@ -1653,6 +1670,10 @@ bfd_boolean bfd_copy_private_section_data
 #define bfd_copy_private_section_data(ibfd, isection, obfd, osection) \
      BFD_SEND (obfd, _bfd_copy_private_section_data, \
                (ibfd, isection, obfd, osection))
+
+void _bfd_strip_section_from_output
+   (struct bfd_link_info *info, asection *section);
+
 bfd_boolean bfd_generic_is_group_section (bfd *, const asection *sec);
 
 bfd_boolean bfd_generic_discard_group (bfd *abfd, asection *group);
@@ -4159,23 +4180,60 @@ BFD_RELOC_XTENSA_ASM_EXPAND.  */
 /* 4 bit value.  */
   BFD_RELOC_Z8K_IMM4L,
 
-/* This is a 32 bit reloc for the microblaze that stores low 16 bits of a 
-   value */
+/* This is a 32 bit reloc for the microblaze that stores the 
+low 16 bits of a value  */
   BFD_RELOC_MICROBLAZE_32_LO,
 
-/* This is a 32 bit pc-relative reloc for the microblaze that stores low 16 
-   bits of a value */
+/* This is a 32 bit pc-relative reloc for the microblaze that 
+stores the low 16 bits of a value  */
   BFD_RELOC_MICROBLAZE_32_LO_PCREL,
 
-/* This is a 32 bit reloc for the microblaze that stores a value relative to
-   the read-only small data area anchor */
+/* This is a 32 bit reloc for the microblaze that stores a 
+value relative to the read-only small data area anchor  */
   BFD_RELOC_MICROBLAZE_32_ROSDA,
 
-/* This is a 32 bit reloc for the microblaze that stores a value relative to
-   the read-write small data area anchor */
+/* This is a 32 bit reloc for the microblaze that stores a 
+value relative to the read-write small data area anchor  */
   BFD_RELOC_MICROBLAZE_32_RWSDA,
 
+/* This is a 32 bit reloc for the microblaze to handle 
+expressions of the form "Symbol Op Symbol"  */
+  BFD_RELOC_MICROBLAZE_32_SYM_OP_SYM,
+
+/* This is a 64 bit reloc that stores the 32 bit pc relative 
+value in two words (with an imm instruction).  No relocation is 
+done here - only used for relaxing  */
+  BFD_RELOC_MICROBLAZE_64_NONE,
+
+/* This is a 64 bit reloc that stores the 32 bit pc relative 
+value in two words (with an imm instruction).  The relocation is
+PC-relative GOT offset  */
+  BFD_RELOC_MICROBLAZE_64_GOTPC,
+
+/* This is a 64 bit reloc that stores the 32 bit pc relative 
+value in two words (with an imm instruction).  The relocation is
+GOT offset  */
+  BFD_RELOC_MICROBLAZE_64_GOT,
+
+/* This is a 64 bit reloc that stores the 32 bit pc relative 
+value in two words (with an imm instruction).  The relocation is
+PC-relative offset into PLT  */
+  BFD_RELOC_MICROBLAZE_64_PLT,
+
+/* This is a 64 bit reloc that stores the 32 bit GOT relative 
+value in two words (with an imm instruction).  The relocation is
+relative offset from _GLOBAL_OFFSET_TABLE_  */
+  BFD_RELOC_MICROBLAZE_64_GOTOFF,
+
+/* This is a 32 bit reloc that stores the 32 bit GOT relative 
+value in a word.  The relocation is relative offset from  */
+  BFD_RELOC_MICROBLAZE_32_GOTOFF,
+
+/* This is used to tell the dynamic linker to copy the value out of
+the dynamic object into the runtime process image.  */
+  BFD_RELOC_MICROBLAZE_COPY,
   BFD_RELOC_UNUSED };
+
 typedef enum bfd_reloc_code_real bfd_reloc_code_real_type;
 reloc_howto_type *bfd_reloc_type_lookup
    (bfd *abfd, bfd_reloc_code_real_type code);

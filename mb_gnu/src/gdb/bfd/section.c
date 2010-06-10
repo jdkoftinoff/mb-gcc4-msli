@@ -419,6 +419,12 @@ CODE_FRAGMENT
 .     a previous linker relaxation pass.  *}
 .  bfd_size_type rawsize;
 .
+.  {* Relaxation table. *}
+.  struct relax_table *relax;
+.
+.  {* Count of used relaxation table entries. *}
+.  int relax_count;
+.
 .  {* If this section is going to be output, then this value is the
 .     offset in *bytes* into the output section of the first byte in the
 .     input section (byte ==> smallest addressable unit on the
@@ -508,6 +514,16 @@ CODE_FRAGMENT
 .  } map_head, map_tail;
 .} asection;
 .
+.{* Relax table contains information about instructions which can
+.   be removed by relaxation -- replacing a long address with a 
+.   short address.  *}
+.struct relax_table {
+.  {* Address where bytes may be deleted. *}
+.  bfd_vma addr;
+.  
+.  {* Number of bytes to be deleted.  *}
+.  int size;
+.};
 .{* These sections are global, and are managed by BFD.  The application
 .   and target back end are not permitted to change the values in
 .   these sections.  New code should use the section_ptr macros rather
@@ -643,8 +659,8 @@ CODE_FRAGMENT
 .  {* has_gp_reloc, need_finalize_relax, reloc_done,                *}	\
 .     0,            0,                   0,				\
 .									\
-.  {* vma, lma, size, rawsize                                       *}	\
-.     0,   0,   0,    0,						\
+.  {* vma, lma, size, rawsize, relax, relax_count                   *}	\
+.     0,   0,   0,    0,       0,     0,                          	\
 .									\
 .  {* output_offset, output_section,              alignment_power,  *}	\
 .     0,             (struct bfd_section *) &SEC, 0,			\
@@ -1486,6 +1502,51 @@ DESCRIPTION
 .     BFD_SEND (obfd, _bfd_copy_private_section_data, \
 .		(ibfd, isection, obfd, osection))
 */
+
+/*
+FUNCTION
+	_bfd_strip_section_from_output
+
+SYNOPSIS
+	void _bfd_strip_section_from_output
+	  (struct bfd_link_info *info, asection *section);
+
+DESCRIPTION
+	Remove @var{section} from the output.  If the output section
+	becomes empty, remove it from the output bfd.
+
+	This function won't actually do anything except twiddle flags
+	if called too late in the linking process, when it's not safe
+	to remove sections.
+*/
+void
+_bfd_strip_section_from_output (struct bfd_link_info *info, asection *s)
+{
+  asection *os;
+  asection *is;
+  bfd *abfd;
+
+  s->flags |= SEC_EXCLUDE;
+
+  /* If the section wasn't assigned to an output section, or the
+     section has been discarded by the linker script, there's nothing
+     more to do.  */
+  os = s->output_section;
+  if (os == NULL || os->owner == NULL)
+    return;
+
+  /* If the output section has other (non-excluded) input sections, we
+     can't remove it.  */
+  for (abfd = info->input_bfds; abfd != NULL; abfd = abfd->link_next)
+    for (is = abfd->sections; is != NULL; is = is->next)
+      if (is->output_section == os && (is->flags & SEC_EXCLUDE) == 0)
+	return;
+
+  /* If the output section is empty, flag it for removal too.
+     See ldlang.c:strip_excluded_output_sections for the action.  */
+  os->flags |= SEC_EXCLUDE;
+}
+
 
 /*
 FUNCTION
