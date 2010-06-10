@@ -20,14 +20,9 @@
  * $Header:
  */
 
-#include "bfd.h"
-
-extern unsigned long microblaze_get_target_address (long, bfd_boolean, int, long, 
-    long, long, bfd_boolean *, bfd_boolean *);
-
 enum microblaze_instr {
    add, rsub, addc, rsubc, addk, rsubk, addkc, rsubkc, cmp, cmpu,
-   addi, rsubi, addic, rsubic, addik, rsubik, addikc, rsubikc, mul,
+   addi, rsubi, addic, rsubic, addik, rsubik, addikc, rsubikc, mul, mulh, mulhu, mulhsu,
    idiv, idivu, bsll, bsra, bsrl, get, put, nget, nput, cget, cput,
    ncget, ncput, muli, bslli, bsrai, bsrli, mului, or, and, xor,
    andn, pcmpbf, pcmpbc, pcmpeq, pcmpne, sra, src, srl, sext8, sext16, wic, wdc, wdcclear, wdcflush, mts, mfs, br, brd,
@@ -36,8 +31,24 @@ enum microblaze_instr {
    imm, rtsd, rtid, rtbd, rted, bri, brid, brlid, brai, braid, bralid,
    brki, beqi, beqid, bnei, bneid, blti, bltid, blei, bleid, bgti,
    bgtid, bgei, bgeid, lbu, lhu, lw, lwx, sb, sh, sw, swx, lbui, lhui, lwi,
-   sbi, shi, swi, msrset, msrclr, tuqula, fadd, fsub, fmul, fdiv, 
-   fcmp_lt, fcmp_eq, fcmp_le, fcmp_gt, fcmp_ne, fcmp_ge, fcmp_un, invalid_inst } ;
+   sbi, shi, swi, msrset, msrclr, tuqula, fadd, frsub, fmul, fdiv, 
+   fcmp_lt, fcmp_eq, fcmp_le, fcmp_gt, fcmp_ne, fcmp_ge, fcmp_un, flt, fint, fsqrt, 
+   tget, tcget, tnget, tncget, tput, tcput, tnput, tncput,
+   eget, ecget, neget, necget, eput, ecput, neput, necput,
+   teget, tecget, tneget, tnecget, teput, tecput, tneput, tnecput,
+   aget, caget, naget, ncaget, aput, caput, naput, ncaput,
+   taget, tcaget, tnaget, tncaget, taput, tcaput, tnaput, tncaput,
+   eaget, ecaget, neaget, necaget, eaput, ecaput, neaput, necaput,
+   teaget, tecaget, tneaget, tnecaget, teaput, tecaput, tneaput, tnecaput,
+   getd, tgetd, cgetd, tcgetd, ngetd, tngetd, ncgetd, tncgetd,
+   putd, tputd, cputd, tcputd, nputd, tnputd, ncputd, tncputd,
+   egetd, tegetd, ecgetd, tecgetd, negetd, tnegetd, necgetd, tnecgetd,
+   eputd, teputd, ecputd, tecputd, neputd, tneputd, necputd, tnecputd,
+   agetd, tagetd, cagetd, tcagetd, nagetd, tnagetd, ncagetd, tncagetd,
+   aputd, taputd, caputd, tcaputd, naputd, tnaputd, ncaputd, tncaputd,
+   eagetd, teagetd, ecagetd, tecagetd, neagetd, tneagetd, necagetd, tnecagetd,
+   eaputd, teaputd, ecaputd, tecaputd, neaputd, tneaputd, necaputd, tnecaputd,
+   invalid_inst } ;
 
 enum microblaze_instr_type {
    arithmetic_inst, logical_inst, mult_inst, div_inst, branch_inst,
@@ -54,18 +65,38 @@ enum microblaze_instr_type {
 #define REG_EAR_MASK 0x8003
 #define REG_ESR_MASK 0x8005
 #define REG_FSR_MASK 0x8007
-#define REG_BTR_MASK 0x800B
+#define REG_BTR_MASK 0x800b
+#define REG_EDR_MASK 0x800d
+#define REG_PVR_MASK 0xa000
 
-#define REG_PVR0_MASK 0xA000
+#define REG_PID_MASK   0x9000
+#define REG_ZPR_MASK   0x9001
+#define REG_TLBX_MASK  0x9002
+#define REG_TLBLO_MASK 0x9003
+#define REG_TLBHI_MASK 0x9004
+#define REG_TLBSX_MASK 0x9005
 
 #define MIN_REGNUM 0
 #define MAX_REGNUM 31
+
+#define MIN_PVR_REGNUM 0
+#define MAX_PVR_REGNUM 15
 
 #define REG_PC  32 /* PC */
 #define REG_MSR 33 /* machine status reg */
 #define REG_EAR 35 /* Exception reg */
 #define REG_ESR 37 /* Exception reg */
 #define REG_FSR 39 /* FPU Status reg */
+#define REG_BTR 43 /* Branch Target reg */
+#define REG_EDR 45 /* Exception reg */
+#define REG_PVR 40960 /* Program Verification reg */
+
+#define REG_PID   36864 /* MMU: Process ID reg       */
+#define REG_ZPR   36865 /* MMU: Zone Protect reg     */
+#define REG_TLBX  36866 /* MMU: TLB Index reg        */
+#define REG_TLBLO 36867 /* MMU: TLB Low reg          */
+#define REG_TLBHI 36868 /* MMU: TLB High reg         */
+#define REG_TLBSX 36869 /* MMU: TLB Search Index reg */
 
 /* alternate names for gen purpose regs */
 #define REG_SP  1 /* stack pointer */
@@ -90,10 +121,10 @@ enum microblaze_instr_type {
 #define IMM5_MASK 0x0000001F
 
 
-// imm mask for get, put instructions
-#define  IMM12_MASK 0x00000FFF
+// FSL imm mask for get, put instructions
+#define  RFSL_MASK 0x000000F
 
 // imm mask for msrset, msrclr instructions
-#define  IMM14_MASK 0x00003FFF
+#define  IMM15_MASK 0x00007FFF
 
 #endif /* MICROBLAZE-OPCM */
