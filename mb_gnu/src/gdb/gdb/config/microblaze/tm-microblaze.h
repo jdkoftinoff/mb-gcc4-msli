@@ -39,9 +39,6 @@
 #ifndef TM_MICROBLAZE_H
 #define TM_MICROBLAZE_H
 
-/* The microblaze is big endian (by default) */
-#define TARGET_BYTE_ORDER_DEFAULT BIG_ENDIAN
-
 /* All registers are 32 bits */
 #define REGISTER_SIZE 4
 #define MAX_REGISTER_RAW_SIZE 4
@@ -218,9 +215,6 @@ extern void microblaze_virtual_frame_pointer PARAMS ((CORE_ADDR, long *, long *)
 #define TARGET_VIRTUAL_FRAME_POINTER(PC, REGP, OFFP) \
 	microblaze_virtual_frame_pointer ((PC), (REGP), (OFFP))
 #endif
-
-/* microblaze cannot be bi-endian. */
-#define TARGET_BYTE_ORDER_SELECTABLE_P 0
 
 /* For PE, gcc will tell us what th real type of
    arguments are when it promotes arguments. */
