@@ -66,6 +66,14 @@
 
 extern enum microblaze_instr get_insn_microblaze (long, bfd_boolean *, 
 		enum microblaze_instr_type *, short *);
+extern unsigned long microblaze_get_target_address (long inst,
+                                                    bfd_boolean immfound,
+                                                    int immval,
+                                                    long pcval,
+                                                    long r1val,
+                                                    long r2val,
+                                                    bfd_boolean *targetvalid,
+                                                    bfd_boolean *unconditionalbranch);
 
 
 /* The registers of the Xilinx microblaze processor */
@@ -81,6 +89,9 @@ static const char *microblaze_register_names[] =
   "rpvr7", "rpvr8", "rpvr9", "rpvr10", "rpvr11",
   "redr", "rpid", "rzpr", "rtlbx", "rtlbsx"
 };
+
+static const gdb_byte big_break_insn[] = BIG_BREAKPOINT;
+static const gdb_byte little_break_insn[] = LITTLE_BREAKPOINT;
 
 #define MICROBLAZE_NUM_REGS ARRAY_SIZE (microblaze_register_names)
 
@@ -145,8 +156,13 @@ microblaze_fetch_instruction (CORE_ADDR pc)
     return 0;
 
   insn = 0;
-  for (i = 0; i < sizeof (buf); i++)
-    insn = (insn << 8) | buf[i];
+  if (TARGET_BYTE_ORDER == BFD_ENDIAN_BIG) {
+      for (i = 0; i < sizeof (buf); i++)
+          insn = (insn << 8) | buf[i];
+  } else {
+      for (i = 3; i >= 0; i--)
+          insn = (insn << 8) | buf[i];
+  }
   return insn;
 }
 
@@ -192,11 +208,16 @@ microblaze_push_dummy_call (struct gdbarch *gdbarch, struct value *function,
 static const gdb_byte *
 microblaze_breakpoint_from_pc (CORE_ADDR *pc, int *len)
 {
-  static const gdb_byte break_insn[] = BIG_BREAKPOINT;
-
-  //mb_warn ("breakpoint_from_pc doesn't check for delay slot");
-  *len = sizeof (break_insn);
-  return break_insn;
+  if (TARGET_BYTE_ORDER == BFD_ENDIAN_BIG) 
+    {
+      *len = sizeof (big_break_insn);
+      return big_break_insn;
+    } 
+  else
+    {
+      *len = sizeof (little_break_insn);
+      return little_break_insn;
+    }
 }
 
 /* Allocate and initialize a frame cache.  */
