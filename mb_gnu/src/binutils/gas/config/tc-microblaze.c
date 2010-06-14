@@ -2317,7 +2317,7 @@ md_parse_option (int c, char * arg)
 void
 md_show_usage (FILE * stream)
 {
-    fprintf (stream, _(" ARM-specific assembler options:\n"));
+    fprintf (stream, _(" MicroBlaze specific assembler options:\n"));
     fprintf (stream, "  -%-23s%s\n", "mbig-endian", N_("assemble for a big endian cpu"));
     fprintf (stream, "  -%-23s%s\n", "mlittle-endian", N_("assemble for a little endian cpu"));    
 }
