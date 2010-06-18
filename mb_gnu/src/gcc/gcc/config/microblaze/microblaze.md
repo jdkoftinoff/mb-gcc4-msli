@@ -1114,7 +1114,7 @@
 )
 
 (define_insn "movdi_internal"
-  [(set (match_operand:DI 0 "nonimmediate_operand" "=d,d,d,&d,Rm,d")
+  [(set (match_operand:DI 0 "nonimmediate_operand" "=d,d,d,d,Rm,d")
 	(match_operand:DI 1 "general_operand"      " d,F,i,Rm,d,J"))]
   ""
   { 
@@ -1128,7 +1128,22 @@
       case 2:
         return "addik\t%M0,r0,%s1\n\taddik\t%L0,r0,%1";
       case 3:
-        return "lwi\t%M0,%M1\n\tlwi\t%L0,%L1";
+        if (refers_to_regno_p (REGNO (operands[0]), 
+                               REGNO (operands[0]) + 1,
+			       operands[1], 0)) 
+        {
+          if (TARGET_BIG_ENDIAN)
+            return "lwi\t%L0,%L1\n\tlwi\t%M0,%M1";          
+          else
+            return "lwi\t%M0,%M1\n\tlwi\t%L0,%L1";
+        } 
+        else 
+        {
+          if (TARGET_BIG_ENDIAN)
+            return "lwi\t%M0,%M1\n\tlwi\t%L0,%L1";          
+          else
+            return "lwi\t%L0,%L1\n\tlwi\t%M0,%M1";
+        }
       case 4:
         return "swi\t%M1,%M0\n\tswi\t%L1,%L0";
       case 5:
@@ -1418,7 +1433,7 @@
 ;; Applies to both TARGET_SOFT_FLOAT and TARGET_HARD_FLOAT
 ;;
 (define_insn "movdf_internal"
-  [(set (match_operand:DF 0 "nonimmediate_operand" "=d,&d,d,&d,To")
+  [(set (match_operand:DF 0 "nonimmediate_operand" "=d,d,d,d,To")
         (match_operand:DF 1 "general_operand" "dG,o,F,T,d"))]
   ""
   {
@@ -1428,7 +1443,22 @@
 	return "addk\t%M0,r0,r0\n\taddk\t%L0,r0,r0";
       case 1:
       case 3:
-        return "lwi\t%L0,%L1\n\tlwi\t%M0,%M1";
+        if (refers_to_regno_p (REGNO (operands[0]), 
+                               REGNO (operands[0]) + 1,
+			       operands[1], 0)) 
+        {
+          if (TARGET_BIG_ENDIAN)
+            return "lwi\t%L0,%L1\n\tlwi\t%M0,%M1";          
+          else
+            return "lwi\t%M0,%M1\n\tlwi\t%L0,%L1";
+        } 
+        else 
+        {
+          if (TARGET_BIG_ENDIAN)
+            return "lwi\t%M0,%M1\n\tlwi\t%L0,%L1";          
+          else
+            return "lwi\t%L0,%L1\n\tlwi\t%M0,%M1";
+        }
       case 2:
 	return "addik\t%M0,r0,%M1 \n\taddik\t%L0,r0,%L1";
       case 4:
