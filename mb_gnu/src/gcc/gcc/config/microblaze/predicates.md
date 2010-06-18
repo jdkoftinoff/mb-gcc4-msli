@@ -24,6 +24,11 @@
   (ior (match_code "const_int")
        (match_operand 0 "register_operand")))
 
+(define_predicate "darith_operand"
+  (ior (ior (match_code "const_int")
+            (match_code "const_double")) 
+       (match_operand 0 "register_operand")))
+
 ;; FIXME:  Should this include test INTVAL(op)==0
 (define_predicate "const_0_operand"
   (and (match_code "const_int,const_double")

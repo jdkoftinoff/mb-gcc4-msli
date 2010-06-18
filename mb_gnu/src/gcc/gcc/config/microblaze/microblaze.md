@@ -479,15 +479,15 @@
 (define_insn "adddi3"
   [(set (match_operand:DI 0 "register_operand" "=d,d,d")
 	(plus:DI (match_operand:DI 1 "register_operand" "d,d,d")
-		 (match_operand:DI 2 "arith_operand" "d,K,JL")))]
+		 (match_operand:DI 2 "darith_operand" "F,i,d")))]
   ""
   "@
-  add\t%L0,%L1,%L2\;addc\t%M0,%M1,%M2
-  addi\t%L0,%L1,%2\;addc\t%M0,%M1,r0
-  addi\t%L0,%L1,%2\;addc\t%M0,%M1,r0\;addi\t%M0,%M0,-1"
+  addi\t%L0,%L1,%L2\;addic\t%M0,%M1,%M2
+  addi\t%L0,%L1,%2\;addic\t%M0,%M1,%s2
+  add\t%L0,%L1,%L2\;addc\t%M0,%M1,%M2"
   [(set_attr "type"	"darith")
   (set_attr "mode"	"DI")
-  (set_attr "length"	"8,8,12")])
+  (set_attr "length"	"8")])
 
 ;;----------------------------------------------------------------
 ;; Add with carry 
@@ -535,18 +535,14 @@
 ;;----------------------------------------------------------------
 
 (define_insn "subdi3"
-  [(set (match_operand:DI 0 "register_operand" "=d,d,d,d")
-	(minus:DI (match_operand:DI 1 "register_operand" "d,d,d,d")
-		  (match_operand:DI 2 "arith_operand" "d,P,J,N")))]
+  [(set (match_operand:DI 0 "register_operand" "=d")
+	(minus:DI (match_operand:DI 1 "register_operand" "d")
+		  (match_operand:DI 2 "darith_operand" "d")))]
   ""
-  "@
-   rsub\t%L0,%L2,%L1\;rsubc\t%M0,%M2,%M1
-   rsub\t%L0,%L2,%L1\;rsubc\t%M0,%M2,%M1
-   add\t%L0,%L1\;add\t%M0,%M1
-   rsub\t%L0,%L2,%L1\;rsubc\t%M0,%M2,%M1"
+  "rsub\t%L0,%L2,%L1\;rsubc\t%M0,%M2,%M1"
   [(set_attr "type"	"darith")
   (set_attr "mode"	"DI")
-  (set_attr "length"	"8,8,8,8")])
+  (set_attr "length"	"8")])
 
 
 ;;----------------------------------------------------------------
@@ -797,7 +793,7 @@
 
 
 ;;----------------------------------------------------------------
-;; Logical
+;; Bitwise operators
 ;;----------------------------------------------------------------
 
 (define_insn "andsi3"
@@ -815,11 +811,14 @@
 
 
 (define_insn "anddi3"
-  [(set (match_operand:DI 0 "register_operand" "=d")
-	(and:DI (match_operand:DI 1 "register_operand" "d")
-		(match_operand:DI 2 "register_operand" "d")))]
+  [(set (match_operand:DI 0 "register_operand" "=d,d,d")
+	(and:DI (match_operand:DI 1 "register_operand" "d,d,d")
+		(match_operand:DI 2 "darith_operand" "F,i,d")))]
   "(!TARGET_DEBUG_G_MODE)"
-  "and\t%M0,%M1,%M2\;and\t%L0,%L1,%L2"
+  "@
+   andi\t%M0,%M1,%M2\;andi\t%L0,%L1,%L2
+   andi\t%M0,%M1,%s2\;andi\t%L0,%L1,%2
+   and\t%M0,%M1,%M2\;and\t%L0,%L1,%L2"
   [(set_attr "type"	"darith")
   (set_attr "mode"	"DI")
   (set_attr "length"    "8")])
@@ -852,11 +851,14 @@
   (set_attr "length"	"4,8,8")])
 
 (define_insn "iordi3"
-  [(set (match_operand:DI 0 "register_operand" "=d")
-	(ior:DI (match_operand:DI 1 "register_operand" "d")
-		(match_operand:DI 2 "register_operand" "d")))]
+  [(set (match_operand:DI 0 "register_operand" "=d,d,d")
+	(ior:DI (match_operand:DI 1 "register_operand" "d,d,d")
+		(match_operand:DI 2 "darith_operand" "F,i,d")))]
   "(!TARGET_DEBUG_G_MODE)"
-  "or\t%M0,%M1,%M2\;or\t%L0,%L1,%L2"
+  "@
+   ori\t%M0,%M1,%M2\;ori\t%L0,%L1,%L2
+   ori\t%M0,%M1,%s2\;ori\t%L0,%L1,%2
+   or\t%M0,%M1,%M2\;or\t%L0,%L1,%L2"
   [(set_attr "type"	"darith")
   (set_attr "mode"	"DI")
   (set_attr "length"    "8")]
@@ -890,16 +892,18 @@
   (set_attr "length"	"4,8,8")])
 
 (define_insn "xordi3"
-  [(set (match_operand:DI 0 "register_operand" "=d")
-	(xor:DI (match_operand:DI 1 "register_operand" "d")
-		(match_operand:DI 2 "register_operand" "d")))]
+  [(set (match_operand:DI 0 "register_operand" "=d,d,d")
+	(xor:DI (match_operand:DI 1 "register_operand" "d,d,d")
+		(match_operand:DI 2 "darith_operand" "F,i,d")))]
   "(!TARGET_DEBUG_G_MODE) "
-  "xor\t%M0,%M1,%M2\;xor\t%L0,%L1,%L2"
+  "@
+   xori\t%M0,%M1,%M2\;xor\t%L0,%L1,%L2
+   xori\t%M0,%M1,%s2\;xori\t%L0,%L1,%2
+   xor\t%M0,%M1,%M2\;xor\t%L0,%L1,%L2"
   [(set_attr "type"	"darith")
   (set_attr "mode"	"DI")
   (set_attr "length"    "8")]
 )
-
 
 (define_split
   [(set (match_operand:DI 0 "register_operand" "")
@@ -987,14 +991,14 @@
   ""
   { 
      if (which_alternative == 0)
-       output_asm_insn ("addk\t%D0,r0,%1", operands);
+       output_asm_insn ("addk\t%L0,r0,%1", operands);
      else
-       output_asm_insn ("lw%i1\t%D0,%1", operands);
+       output_asm_insn ("lw%i1\t%L0,%1", operands);
 
-     output_asm_insn ("add\t%0,%D0,%D0", operands);
-     output_asm_insn ("addc\t%0,r0,r0", operands);
-     output_asm_insn ("beqi\t%0,.+8", operands);
-     return "addi\t%0,r0,0xffffffff";
+     output_asm_insn ("add\t%M0,%L0,%L0", operands);
+     output_asm_insn ("addc\t%M0,r0,r0", operands);
+     output_asm_insn ("beqi\t%M0,.+8", operands);
+     return "addi\t%M0,r0,0xffffffff";
   }
   [(set_attr "type"	"multi,multi,multi")
   (set_attr "mode"	"DI")
@@ -1009,14 +1013,14 @@
   ""
   { 
      if (which_alternative == 0)
-       output_asm_insn ("addk\t%D0,r0,%1", operands);
+       output_asm_insn ("addk\t%L0,r0,%1", operands);
      else
-       output_asm_insn ("lw%i1\t%D0,%1", operands);
-     output_asm_insn ("sext8\t%D0,%D0", operands);
-     output_asm_insn ("add\t%0,%D0,%D0", operands);
-     output_asm_insn ("addc\t%0,r0,r0", operands);
-     output_asm_insn ("beqi\t%0,.+8", operands);
-     return "addi\t%0,r0,0xffffffff";
+       output_asm_insn ("lbu%i1\t%L0,%1", operands);
+     output_asm_insn ("sext8\t%L0,%L0", operands);
+     output_asm_insn ("add\t%M0,%L0,%L0", operands);
+     output_asm_insn ("addc\t%M0,r0,r0", operands);
+     output_asm_insn ("beqi\t%M0,.+8", operands);
+     return "addi\t%M0,r0,0xffffffff";
   }
   [(set_attr "type"	"multi,multi,multi")
   (set_attr "mode"	"DI")
@@ -1031,14 +1035,14 @@
    ""
   { 
      if (which_alternative == 0)
-       output_asm_insn ("addk\t%D0,r0,%1", operands);
+       output_asm_insn ("addk\t%L0,r0,%1", operands);
      else
-       output_asm_insn ("lhu%i1\t%D0,%1", operands);
-     output_asm_insn ("sext16\t%D0,%D0", operands);
-     output_asm_insn ("add\t%0,%D0,%D0", operands);
-     output_asm_insn ("addc\t%0,r0,r0", operands);
-     output_asm_insn ("beqi\t%0,.+8", operands);
-     return "addi\t%0,r0,0xffffffff";
+       output_asm_insn ("lhu%i1\t%L0,%1", operands);
+     output_asm_insn ("sext16\t%L0,%L0", operands);
+     output_asm_insn ("add\t%M0,%L0,%L0", operands);
+     output_asm_insn ("addc\t%M0,r0,r0", operands);
+     output_asm_insn ("beqi\t%M0,.+8", operands);
+     return "addi\t%M0,r0,0xffffffff";
   }
   [(set_attr "type"	"multi,multi,multi")
   (set_attr "mode"	"DI")
@@ -1110,35 +1114,31 @@
 )
 
 (define_insn "movdi_internal"
-  [(set (match_operand:DI 0 "nonimmediate_operand" "=d,d,d,d,d,d,R,m")
-	(match_operand:DI 1 "general_operand"      " d,F,J,i,R,m,d,d"))]
+  [(set (match_operand:DI 0 "nonimmediate_operand" "=d,d,d,&d,Rm,d")
+	(match_operand:DI 1 "general_operand"      " d,F,i,Rm,d,J"))]
   ""
   { 
     switch (which_alternative)
     {
       case 0:
-        return "addk\t%0,%1\n\taddk\t%D0,%d1";
+        gcc_assert(0);
+        return "addk\t%M0,%1\n\taddk\t%L0,%d1";
       case 1:
-	return "addik\t%0,r0,%h1\n\taddik\t%D0,r0,%j1 #li => la";
+	return "addik\t%M0,r0,%M1\n\taddik\t%L0,r0,%L1";
       case 2:
-	  return "addk\t%0,r0,r0\n\taddk\t%D0,r0,r0";
+        return "addik\t%M0,r0,%s1\n\taddik\t%L0,r0,%1";
       case 3:
-	  return "addik\t%M0,r0,%s1\n\taddik\t%L0,r0,%1";
+        return "lwi\t%M0,%M1\n\tlwi\t%L0,%L1";
       case 4:
+        return "swi\t%M1,%M0\n\tswi\t%L1,%L0";
       case 5:
-        if (reg_mentioned_p (operands[0], operands[1]))
-          return "lwi\t%D0,%o1\n\tlwi\t%0,%1";
-	else
-	  return "lwi\t%0,%1\n\tlwi\t%D0,%o1";
-      case 6:
-      case 7:
-        return "swi\t%1,%0\n\tswi\t%D1,%o0";
+        return "addk\t%M0,r0,r0\n\taddk\t%L0,r0,r0";
     }
     return "unreachable";
   }
-  [(set_attr "type"	"no_delay_move,no_delay_arith,no_delay_arith,no_delay_arith,no_delay_load,no_delay_load,no_delay_store,no_delay_store")
-  (set_attr "mode"	"DI")
-  (set_attr "length"   "8,8,8,8,8,12,8,12")])
+  [(set_attr "type"	"no_delay_arith,no_delay_arith,no_delay_arith,no_delay_load,no_delay_store,no_delay_arith")
+  (set_attr "mode"	"DI,DI,DI,DI,DI,DI")
+  (set_attr "length"   "8,8,8,8,8,8")])
 
 (define_split
   [(set (match_operand:DI 0 "register_operand" "")
@@ -1418,26 +1418,21 @@
 ;; Applies to both TARGET_SOFT_FLOAT and TARGET_HARD_FLOAT
 ;;
 (define_insn "movdf_internal"
-  [(set (match_operand:DF 0 "nonimmediate_operand" "=d,d,d,d,To")
+  [(set (match_operand:DF 0 "nonimmediate_operand" "=d,&d,d,&d,To")
         (match_operand:DF 1 "general_operand" "dG,o,F,T,d"))]
   ""
   {
     switch (which_alternative)
     {
       case 0:
-	return "addk\t%0,r0,r0\n\taddk\t%D0,r0,r0";
+	return "addk\t%M0,r0,r0\n\taddk\t%L0,r0,r0";
       case 1:
       case 3:
-	if (reg_mentioned_p (operands[0], operands[1]))
-          return "lwi\t%D0,%o1\n\tlwi\t%0,%1";
-        else
-	  return "lwi\t%0,%1\n\tlwi\t%D0,%o1";
+        return "lwi\t%L0,%L1\n\tlwi\t%M0,%M1";
       case 2:
-      {
-	return "addik\t%0,r0,%h1 \n\taddik\t%D0,r0,%j1 #Xfer Lo";
-      }
+	return "addik\t%M0,r0,%M1 \n\taddik\t%L0,r0,%L1";
       case 4:
-	return "swi\t%1,%0\n\tswi\t%D1,%o0";
+        return "swi\t%M1,%M0\n\tswi\t%L1,%L0";
     }
     return "unreachable";
   }
@@ -1523,7 +1518,7 @@
                    (match_operand:SI 2 "immediate_operand" "I")))] 
   "!TARGET_SOFT_MUL 
    && ((1 << INTVAL (operands[2])) <= 32767 && (1 << INTVAL (operands[2])) >= -32768)"
-  "muli\t%0,%1,%m2"
+  "muli\t%0,%1,%y2"
   ;; This MUL will not generate an imm. Can go into a delay slot.
   [(set_attr "type"	"arith")
    (set_attr "mode"	"SI")
@@ -1535,7 +1530,7 @@
 	(ashift:SI (match_operand:SI 1 "register_operand"  "d")
                    (match_operand:SI 2 "immediate_operand" "I")))] 
   "!TARGET_SOFT_MUL"
-  "muli\t%0,%1,%m2"
+  "muli\t%0,%1,%y2"
   ;; This MUL will generate an IMM. Cannot go into a delay slot
   [(set_attr "type"	"no_delay_arith")
    (set_attr "mode"	"SI")

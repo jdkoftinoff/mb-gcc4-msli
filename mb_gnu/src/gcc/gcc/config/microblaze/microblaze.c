@@ -357,7 +357,6 @@ enum reg_class microblaze_char_to_class[256] =
 };
 
 int get_base_reg(rtx);
-static int printed = 0;
 
 /* Microblaze specific machine attributes.
    interrupt_handler - Interrupt handler attribute to add interrupt prologue and 
@@ -1868,9 +1867,8 @@ microblaze_initial_elimination_offset (int from, int to)
    'F'  op is CONST_DOUBLE, print 32 bits in hex,
    'd'  output integer constant in decimal,
    'z'	if the operand is 0, use $0 instead of normal operand.
-   'D'  print second register of double-word register operand.
-   'L'  print low-order register of double-word register operand.
-   'M'  print high-order register of double-word register operand.
+   'M'  print regno or memory address for the most significant word of a double-word operand or const_double
+   'L'  print regno or memory address for the least significant word of a double-word operand or const_double_
    'C'  print part of opcode for a branch condition.
    'N'  print part of opcode for a branch condition, inverted.
    'S'  X is CODE_LABEL, print with prefix of "LS" (for embedded switch).
@@ -1879,12 +1877,9 @@ microblaze_initial_elimination_offset (int from, int to)
    'T'  print 'f' for EQ, 't' for NE
    't'  print 't' for EQ, 'f' for NE
    'Z'  print register and a comma, but print nothing for $fcc0
-   'm'  Print 1<<operand.
+   'y'  Print 1<<operand.
    'i'  Print 'i' if MEM operand has immediate value
-   'o'	Print operand address+4
    '?'	Print 'd' if we are to use a branch with delay slot instead of normal branch.
-   'h'  Print high word of const_double (int or float) value as hex
-   'j'  Print low word of const_double (int or float) value as hex
    's'  Print -1 if operand is negative, 0 if positive (sign extend)
    '@'	Print the name of the assembler temporary register (at or rMB_ABI_ASM_TEMP_REGNUM).
    '#'	Print nop if the delay slot of a branch is not filled. 
@@ -2029,16 +2024,16 @@ print_operand (
     else
       regnum = true_regnum (op);
 
-    if ((letter == 'M' && ! WORDS_BIG_ENDIAN)
-        || (letter == 'L' && WORDS_BIG_ENDIAN)
-        || letter == 'D')
-      regnum++;
+    if ((letter == 'M' && !TARGET_BIG_ENDIAN) ||
+        (letter == 'L' && TARGET_BIG_ENDIAN))
+        regnum++;
 
     fprintf (file, "%s", reg_names[regnum]);
   }
 
   else if (code == MEM)
-    if (letter == 'o')
+    if ((letter == 'M' && !TARGET_BIG_ENDIAN) ||
+        (letter == 'L' && TARGET_BIG_ENDIAN)) 
     {
        rtx op4 = adjust_address (op, GET_MODE(op), 4);
        output_address (XEXP (op4, 0));
@@ -2047,19 +2042,24 @@ print_operand (
 
   else if (code == CONST_DOUBLE)
   {
-    if (letter == 'h' || letter == 'j')
+    if (letter == 'M' || letter == 'L')
     {
       int val[2];
+
       if (GET_MODE (op) == DFmode)
       {
 	REAL_VALUE_TYPE value;
-	REAL_VALUE_FROM_CONST_DOUBLE(value,op);
+	REAL_VALUE_FROM_CONST_DOUBLE(value, op);
 	REAL_VALUE_TO_TARGET_DOUBLE (value, &val);
+        if (letter == 'M')  
+            fprintf(file, "0x%8.8x", TARGET_BIG_ENDIAN ? val[0] : val[1]);
+        else
+            fprintf(file, "0x%8.8x", TARGET_BIG_ENDIAN ? val[1] : val[0]);
       } else {
         val[0] = CONST_DOUBLE_HIGH (op);
         val[1] = CONST_DOUBLE_LOW (op);
+        fprintf(file, "0x%8.8x", (letter == 'M') ? val[0] : val[1]);
       }
-      fprintf (file, "0x%8.8x", (letter == 'h') ? val[0] : val[1]);
     }
     else if (letter == 'F')
     {
@@ -2092,11 +2092,12 @@ print_operand (
   else if (letter == 'z' && GET_CODE (op) == CONST_INT && INTVAL (op) == 0)
     fputs (reg_names[GP_REG_FIRST], file);
 
-  else if (letter == 's' && GET_CODE(op) == CONST_INT)
+  else if (letter == 's' && GET_CODE(op) == CONST_INT) {
     if (INTVAL(op) < 0)
       fputs ("-1", file);
     else
       fputs ("0", file);
+  }
 
   else if (letter == 'd' || letter == 'x' || letter == 'X' || letter == 's')
     error ("PRINT_OPERAND: letter %c was found & insn was not CONST_INT",
@@ -2115,7 +2116,7 @@ print_operand (
   {
     print_operand (file, XEXP (op, 0), letter);
   }
-  else if (letter == 'm')
+  else if (letter == 'y')
     fprintf (file, HOST_WIDE_INT_PRINT_DEC, (1L << INTVAL(op)));
   else
     output_addr_const (file, op);
