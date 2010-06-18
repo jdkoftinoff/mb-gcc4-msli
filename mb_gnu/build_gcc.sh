@@ -86,9 +86,10 @@ if [ $NOBUILD = 0 ]; then
   print_err " rc = " $rc
 fi
 
+cd $CURDIR
+
 ./build_newlib_variants.sh 
 
-cd $CURDIR
 if [ $NOCLEAN = 0 ]; then
   rm -rf $BLDDIR
 fi

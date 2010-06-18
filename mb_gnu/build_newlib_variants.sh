@@ -66,6 +66,5 @@ while read LDIR LPATH LNAME; do
     rm -rf $LNAME
     ln -s $LPATH $LNAME >> $BLDDIR/log/libs-make.log
 done < $SRCDIR/$LIB_VARIANT_LINKS
-fi
 
 echo "Build libraries completed: `date`."
