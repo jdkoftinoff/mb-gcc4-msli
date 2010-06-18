@@ -24,6 +24,7 @@ echo -e "CWD\t\t: $CURDIR"
 echo -e "CFLAGS\t\t: $CFLAGS"
 echo -e "Version String\t: $TOOL_VERSION"
 echo -e "Platform\t: $PLATFORM"
+echo -e "Build started\t: `date`"
 
 rm -rf $BLDDIR/binutils
 rm -rf $BLDDIR/build
@@ -107,4 +108,4 @@ if [ $NOCLEAN = 0 ]; then
   rm -rf $BLDDIR
 fi
 
-echo "Build complete."
+echo "Build completed: `date`."

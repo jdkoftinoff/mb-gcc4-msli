@@ -30,6 +30,7 @@ echo -e "CWD\t\t: $CURDIR"
 echo -e "CFLAGS\t\t: $CFLAGS"
 echo -e "Version String\t: $TOOL_VERSION"
 echo -e "Platform\t: $PLATFORM"
+echo -e "Build started: `date`"
 
 rm -rf $BLDDIR/build
 rm -rf $BLDDIR/log
@@ -85,9 +86,11 @@ if [ $NOBUILD = 0 ]; then
   print_err " rc = " $rc
 fi
 
+./build_newlib_variants.sh 
+
 cd $CURDIR
 if [ $NOCLEAN = 0 ]; then
   rm -rf $BLDDIR
 fi
 
-echo "Build complete."
+echo "Build completed: `date`."
