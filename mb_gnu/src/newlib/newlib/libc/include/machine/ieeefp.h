@@ -279,7 +279,11 @@
 #endif
 
 #ifdef __MICROBLAZE__
+#if defined(__BIG_ENDIAN__)
 #define __IEEE_BIG_ENDIAN
+#else
+#define __IEEE_LITTLE_ENDIAN
+#endif
 #endif
 
 #ifndef __IEEE_BIG_ENDIAN
