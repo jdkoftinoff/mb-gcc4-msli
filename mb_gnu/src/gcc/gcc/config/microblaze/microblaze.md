@@ -897,7 +897,7 @@
 		(match_operand:DI 2 "darith_operand" "F,i,d")))]
   "(!TARGET_DEBUG_G_MODE) "
   "@
-   xori\t%M0,%M1,%M2\;xor\t%L0,%L1,%L2
+   xori\t%M0,%M1,%M2\;xori\t%L0,%L1,%L2
    xori\t%M0,%M1,%s2\;xori\t%L0,%L1,%2
    xor\t%M0,%M1,%M2\;xor\t%L0,%L1,%L2"
   [(set_attr "type"	"darith")
