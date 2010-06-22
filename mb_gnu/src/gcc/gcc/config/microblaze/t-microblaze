@@ -32,7 +32,10 @@ dp-bit.c: $(srcdir)/config/fp-bit.c
 
 MULTILIB_OPTIONS = mxl-barrel-shift mno-xl-soft-mul mxl-multiply-high mlittle-endian
 MULTILIB_DIRNAMES = bs m mh le
-MULTILIB_EXCEPTIONS = *mxl-barrel-shift/mxl-multiply-high mxl-multiply-high *mxl-multiply-high/mlittle-endian
+MULTILIB_EXCEPTIONS = *mxl-barrel-shift/mxl-multiply-high 
+MULTILIB_EXCEPTIONS += mxl-multiply-high 
+MULTILIB_EXCEPTIONS += *mxl-barrel-shift/mxl-multiply-high/mlittle-endian
+MULTILIB_EXCEPTIONS += mxl-multiply-high/mlittle-endian
 
 ## Unfortunately, this does not work. We have to find a way to do this. 
 ## Otherwise, -xl-blazeit will cause only the base libgcc to be picked up always.
