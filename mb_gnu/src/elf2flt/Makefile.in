@@ -9,7 +9,7 @@ includedir = @includedir@
 
 CC = @CC@
 CPU = @target_cpu@
-TARGET = @target_alias@
+TARGET = @program_prefix@
 SYMBOL_PREFIX = @SYMBOL_PREFIX@
 CFLAGS = @CFLAGS@
 INCLUDES = -I$(srcdir) @bfd_include_dir@ @binutils_include_dir@ @zlib_include_dir@
@@ -63,7 +63,7 @@ else
 PROG_LD_ELF2FLT    = $(PROG_LD_ELF2FLT_SH)
 endif
 
-PROGS = $(PROG_ELF2FLT) $(PROG_FLTHDR) $(PROG_LD_ELF2FLT_C) $(PROG_LD_ELF2FLT_SH)
+PROGS = $(PROG_ELF2FLT) $(PROG_FLTHDR) #$(PROG_LD_ELF2FLT_C) $(PROG_LD_ELF2FLT_SH)
 
 all: $(PROGS)
 

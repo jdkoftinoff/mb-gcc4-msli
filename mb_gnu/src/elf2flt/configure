@@ -675,6 +675,7 @@ build
 target_alias
 host_alias
 build_alias
+program_prefix
 LIBS
 ECHO_T
 ECHO_N
