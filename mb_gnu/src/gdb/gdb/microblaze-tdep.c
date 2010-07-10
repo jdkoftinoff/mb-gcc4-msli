@@ -297,9 +297,24 @@ microblaze_analyze_prologue (CORE_ADDR pc, CORE_ADDR current_pc,
   microblaze_insn_debug(("MICROBLAZE: Scanning prologue: name=%s, func_addr=0x%x, stop=0x%x\n",
 		     name, (unsigned int) func_addr, (unsigned int) stop));
 
+  /* Do a block read to minimize the transaction with the Debug Agent */
+  int n_insns = (stop == func_addr) ? 1 : ((stop - func_addr) / INST_WORD_SIZE);
+  unsigned long *insn_block = (unsigned long *)calloc(n_insns, sizeof(unsigned long));
+  gdb_byte *buf_block = (gdb_byte *)calloc(n_insns * INST_WORD_SIZE, sizeof(gdb_byte));
+
+  target_read_memory (func_addr, buf_block, n_insns * INST_WORD_SIZE );
+
+  int ti, tj;
+  for(ti = 0; ti < n_insns; ti++){
+	  insn_block[ti] = 0;
+	  for( tj = ti * INST_WORD_SIZE; tj < (ti + 1) * INST_WORD_SIZE; tj++ )
+		  insn_block[ti] = (insn_block[ti] << 8) | buf_block[tj];
+  }
+  
   for (addr = func_addr; addr < stop; addr += INST_WORD_SIZE)
     {
-      insn = microblaze_fetch_instruction (addr);
+	    //insn = microblaze_fetch_instruction (addr);
+      insn = insn_block[(addr - func_addr) / INST_WORD_SIZE];
       op = microblaze_decode_insn (insn, &rd, &ra, &rb, &imm);
       microblaze_dump_insn ("got 2: ", addr, insn);
 
@@ -424,6 +439,8 @@ microblaze_analyze_prologue (CORE_ADDR pc, CORE_ADDR current_pc,
     prologue_end_addr -= INST_WORD_SIZE;
   }
 
+  free(insn_block);
+  free(buf_block);
   return prologue_end_addr;
 }
 

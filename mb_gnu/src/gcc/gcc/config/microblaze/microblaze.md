@@ -222,44 +222,44 @@
 ;;----------------------------------------------------------------
 ;; Microblaze 5-stage pipeline description (v5.00.a and later)
 ;;----------------------------------------------------------------                 
-                    
+
 (define_automaton   "mbpipe_5")
-(define_cpu_unit    "mb_issue,mb_iu,mb_wb,mb_fpu,mb_fpu_2,mb_mul,mb_mul_2,mb_div,mb_div_2,mb_bs,mb_bs_2" "mbpipe_5")
+(define_cpu_unit    "mb_iu,mb_fpu,mb_div" "mbpipe_5")
 
 (define_insn_reservation "mb-integer" 1 
   (and (eq_attr "type" "branch,jump,call,arith,darith,icmp,nop,no_delay_arith")
        (eq (symbol_ref  "microblaze_pipe") (const_int MB_PIPE_5)))
-  "mb_issue,mb_iu,mb_wb")
+  "mb_iu")
 
 (define_insn_reservation "mb-special-move" 2
   (and (eq_attr "type" "move")
        (eq (symbol_ref  "microblaze_pipe") (const_int MB_PIPE_5)))
-  "mb_issue,mb_iu*2,mb_wb")
+  "mb_iu*2")
 
 (define_insn_reservation "mb-mem-load" 3
   (and (eq_attr "type" "load,no_delay_load")
        (eq (symbol_ref  "microblaze_pipe") (const_int MB_PIPE_5)))
-  "mb_issue,mb_iu,mb_wb")
+  "mb_iu")
 
 (define_insn_reservation "mb-mem-store" 1
   (and (eq_attr "type" "store,no_delay_store")
        (eq (symbol_ref  "microblaze_pipe") (const_int MB_PIPE_5)))
-  "mb_issue,mb_iu,mb_wb")
+  "mb_iu")
 
 (define_insn_reservation "mb-mul" 3
   (and (eq_attr "type" "imul,no_delay_imul")
        (eq (symbol_ref  "microblaze_pipe") (const_int MB_PIPE_5)))
-  "mb_issue,mb_mul,mb_mul_2*2,mb_wb")
+  "mb_iu")
 
 (define_insn_reservation "mb-div" 34            
   (and (eq_attr "type" "idiv")
        (eq (symbol_ref  "microblaze_pipe") (const_int MB_PIPE_5)))
-    "mb_issue,mb_div,mb_div_2*33,mb_wb")
+    "mb_iu,mb_div*33")
 
 (define_insn_reservation "mb-bs" 2 
   (and (eq_attr "type" "bshift")
        (eq (symbol_ref  "microblaze_pipe") (const_int MB_PIPE_5)))
-   "mb_issue,mb_bs,mb_bs_2,mb_wb")
+   "mb_iu")
 
 ;; We are not producing FSL instructions anyways for this to have any practical use.
 ;; (define_insn_reservation "mb-fsl" 2 
@@ -270,27 +270,27 @@
 (define_insn_reservation "mb-fpu-add-sub-mul" 6
   (and (eq_attr "type" "fadd,frsub,fmul")
        (eq (symbol_ref  "microblaze_pipe") (const_int MB_PIPE_5)))
-  "mb_issue,mb_fpu,mb_fpu_2*5,mb_wb")
+  "mb_iu,mb_fpu*5")
 
 (define_insn_reservation "mb-fpu-fcmp" 3
   (and (eq_attr "type" "fcmp")
        (eq (symbol_ref  "microblaze_pipe") (const_int MB_PIPE_5)))
-  "mb_issue,mb_fpu,mb_fpu*2,mb_wb")
+  "mb_iu,mb_fpu*2")
 
 (define_insn_reservation "mb-fpu-div" 30
   (and (eq_attr "type" "fdiv")
        (eq (symbol_ref  "microblaze_pipe") (const_int MB_PIPE_5)))
-  "mb_issue,mb_fpu,mb_fpu_2*29,mb_wb")
+  "mb_iu,mb_fpu*29")
 
 (define_insn_reservation "mb-fpu-sqrt" 30
   (and (eq_attr "type" "fsqrt")
        (eq (symbol_ref  "microblaze_pipe") (const_int MB_PIPE_5)))
-  "mb_issue,mb_fpu,mb_fpu_2*29,mb_wb")
+  "mb_iu,mb_fpu*29")
 
 (define_insn_reservation "mb-fpu-fcvt" 4
   (and (eq_attr "type" "fcvt")
        (eq (symbol_ref  "microblaze_pipe") (const_int MB_PIPE_5)))
-  "mb_issue,mb_fpu,mb_fpu_2*3,mb_wb")
+  "mb_iu,mb_fpu*3")
 
 ;;----------------------------------------------------------------
 ;; Microblaze 3-stage pipeline description (for v4.00.a and earlier)
@@ -374,11 +374,8 @@
 ;;----------------------------------------------------------------
 (define_delay (eq_attr "type" "branch,call,jump")
   [(and (eq_attr "type" "!branch,call,jump,icmp,multi,no_delay_arith,no_delay_load,no_delay_store,no_delay_imul,no_delay_move,darith") 
-        (ior (eq (symbol_ref "microblaze_no_unsafe_delay") (const_int 0))
-             (eq_attr "type" "!fadd,frsub,fmul,fdiv,fcmp,store,load")
-             ))
+        (eq (symbol_ref "microblaze_no_unsafe_delay") (const_int 0)))
   (nil) (nil)])
-
 
 ;;----------------------------------------------------------------
 ;; Microblaze FPU
@@ -520,7 +517,7 @@
 (define_insn "subsi3"
   [(set (match_operand:SI 0 "register_operand" "=d,d,d,d,d")
 	(minus:SI (match_operand:SI 1 "arith_operand" "dJ,dJ,dJ,I,i")
-		  (match_operand:SI 2 "arith_operand" "d,I,i,dJ,dJ")))]
+		  (match_operand:SI 2 "arith_operand" "d,I,M,dJ,dJ")))]
   ""
   "@
    rsubk\t%0,%2,%z1
@@ -804,18 +801,17 @@
 ;;----------------------------------------------------------------
 
 (define_insn "andsi3"
-  [(set (match_operand:SI 0 "register_operand" "=d,d,d,d")
-	(and:SI (match_operand:SI 1 "arith_operand" "%d,d,d,d")
-		(match_operand:SI 2 "arith_operand" "d,I,i,M")))]
+  [(set (match_operand:SI 0 "register_operand" "=d,d,d")
+	(and:SI (match_operand:SI 1 "arith_operand" "%d,d,d")
+		(match_operand:SI 2 "arith_operand" "d,I,i")))]
   ""
   "@
    and\t%0,%1,%2
    andi\t%0,%1,%2 #and1
-   andi\t%0,%1,%2 #and2
-   andi\t%0,%1,%2 #and3"
-  [(set_attr "type"	"arith,arith,no_delay_arith,no_delay_arith")
-  (set_attr "mode"	"SI,SI,SI,SI")
-  (set_attr "length"	"4,8,8,8")])
+   andi\t%0,%1,%2 #and2"
+  [(set_attr "type"	"arith,arith,no_delay_arith")
+  (set_attr "mode"	"SI,SI,SI")
+  (set_attr "length"	"4,8,8")])
 
 
 (define_insn "anddi3"
@@ -843,19 +839,17 @@
   "")
 
 (define_insn "iorsi3"
-  [(set (match_operand:SI 0 "register_operand" "=d,d,d,d")
-	(ior:SI (match_operand:SI 1 "arith_operand" "%d,d,d,d")
-		(match_operand:SI 2 "arith_operand" "d,I,M,i")))]
+  [(set (match_operand:SI 0 "register_operand" "=d,d,d")
+	(ior:SI (match_operand:SI 1 "arith_operand" "%d,d,d")
+		(match_operand:SI 2 "arith_operand" "d,I,i")))]
   ""
   "@
    or\t%0,%1,%2
    ori\t%0,%1,%2
-   ori\t%0,%1,%2
    ori\t%0,%1,%2" 
-  [(set_attr "type"	"arith,no_delay_arith,no_delay_arith,no_delay_arith")
-  (set_attr "mode"	"SI,SI,SI,SI")
-  (set_attr "length"	"4,8,8,8")])
-
+  [(set_attr "type"	"arith,no_delay_arith,no_delay_arith")
+  (set_attr "mode"	"SI,SI,SI")
+  (set_attr "length"	"4,8,8")])
 
 (define_insn "iordi3"
   [(set (match_operand:DI 0 "register_operand" "=d")
@@ -1115,8 +1109,6 @@
   }
 )
 
-
-
 (define_insn "movdi_internal"
   [(set (match_operand:DI 0 "nonimmediate_operand" "=d,d,d,d,d,d,R,m")
 	(match_operand:DI 1 "general_operand"      " d,F,J,i,R,m,d,d"))]
@@ -1201,7 +1193,7 @@
 ;; This move will be not be moved to delay slot.	
 (define_insn "movsi_internal3"
   [(set (match_operand:SI 0 "nonimmediate_operand" "=d,d,d")
-	(match_operand:SI 1 "immediate_operand" "J,I,Mnis"))]
+	(match_operand:SI 1 "immediate_operand" "J,I,nis"))]
   "(register_operand (operands[0], SImode) && 
            (GET_CODE (operands[1]) == CONST_INT && 
                  (INTVAL (operands[1]) <= 32767 && INTVAL(operands[1]) >= -32768)))"  
@@ -1228,7 +1220,7 @@
 
 (define_insn "movsi_internal2"
   [(set (match_operand:SI 0 "nonimmediate_operand" "=d,d,d,   d,d,R, T")
-	(match_operand:SI 1 "move_operand"         " d,I,Mnis,R,m,dJ,dJ"))]
+	(match_operand:SI 1 "move_operand"         " d,I,nis,R,m,dJ,dJ"))]
   "!TARGET_DEBUG_H_MODE
    && (register_operand (operands[0], SImode)
        || register_operand (operands[1], SImode) 
@@ -1622,9 +1614,9 @@
   ""
   {
     operands[3] = gen_rtx_REG (SImode, MB_ABI_ASM_TEMP_REGNUM);
+    output_asm_insn ("andi\t%3,%2,31", operands);
     if (REGNO (operands[0]) != REGNO (operands[1])) 
       output_asm_insn ("addk\t%0,r0,%1", operands);
-    output_asm_insn ("andi\t%3,%2,31", operands);
     /* Exit the loop if zero shift. */
     output_asm_insn ("beqid\t%3,.+20", operands);
     /* Emit the loop.  */
@@ -1710,9 +1702,9 @@
   ""
   {
     operands[3] = gen_rtx_REG (SImode, MB_ABI_ASM_TEMP_REGNUM);
+    output_asm_insn ("andi\t%3,%2,31", operands);
     if (REGNO (operands[0]) != REGNO (operands[1])) 
       output_asm_insn ("addk\t%0,r0,%1", operands);
-    output_asm_insn ("andi\t%3,%2,31", operands);
     /* Exit the loop if zero shift. */
     output_asm_insn ("beqid\t%3,.+20", operands);
     /* Emit the loop.  */
@@ -1798,9 +1790,9 @@
   ""
   {
     operands[3] = gen_rtx_REG (SImode, MB_ABI_ASM_TEMP_REGNUM);
+    output_asm_insn ("andi\t%3,%2,31", operands);
     if (REGNO (operands[0]) != REGNO (operands[1])) 
       output_asm_insn ("addk\t%0,r0,%1", operands);
-    output_asm_insn ("andi\t%3,%2,31", operands);
     /* Exit the loop if zero shift. */
     output_asm_insn ("beqid\t%3,.+20", operands);
     /* Emit the loop.  */

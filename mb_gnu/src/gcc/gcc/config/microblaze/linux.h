@@ -64,3 +64,10 @@
       %{!dynamic-linker:-dynamic-linker %(dynamic_linker)}} \
     %{static:-static}}"
 
+#undef FUNCTION_PROFILER
+#define FUNCTION_PROFILER(FILE, LABELNO) {                              \
+        {                                                               \
+            fprintf (FILE, "\tbralid\tr15,_mcount;\n");                 \
+            fprintf (FILE, "\tnop;\n");                                 \
+        }                                                               \
+    }

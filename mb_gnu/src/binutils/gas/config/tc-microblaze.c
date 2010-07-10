@@ -1293,15 +1293,15 @@ md_assemble (char * str)
       output = frag_more (isize);
       break;
       
-   case INST_TYPE_RD_R1_SPECIAL:
+   case INST_TYPE_R1_R2_SPECIAL:
       if (strcmp(op_end, ""))
-         op_end = parse_reg(op_end + 1, &reg1);  /* get rd */
+         op_end = parse_reg(op_end + 1, &reg1);  /* get r1 */
       else {
          as_fatal(_("Error in statement syntax"));
          reg1 = 0;
       }
       if (strcmp(op_end, ""))
-         op_end = parse_reg(op_end + 1, &reg2);  /* get r1 */
+         op_end = parse_reg(op_end + 1, &reg2);  /* get r2 */
       else {
          as_fatal(_("Error in statement syntax"));
          reg2 =0;
@@ -1314,8 +1314,6 @@ md_assemble (char * str)
          as_fatal(_("Cannot use special register with this instruction"));
       
       
-      /* insn wic ra, rb => wic ra, ra, rb */
-      inst |= (reg1 << RD_LOW) & RD_MASK;
       inst |= (reg1 << RA_LOW) & RA_MASK;
       inst |= (reg2 << RB_LOW) & RB_MASK;
       
@@ -2052,7 +2050,8 @@ md_estimate_size_before_relax (register fragS * fragP,
          as_bad(_("Absolute PC-relative value in relaxation code.  Assembler error....."));
          abort();
       }
-      else if ((S_GET_SEGMENT (fragP->fr_symbol) == segment_type))
+      else if (S_GET_SEGMENT (fragP->fr_symbol) == segment_type && 
+               !S_IS_WEAK (fragP->fr_symbol))
       {
          fragP->fr_subtype = DEFINED_PC_OFFSET;
          /* Don't know now whether we need an imm instruction */
