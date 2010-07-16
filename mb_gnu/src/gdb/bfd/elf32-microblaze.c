@@ -1480,11 +1480,6 @@ microblaze_elf_relax_section (bfd *abfd, asection *sec,
 	     break;
 	   case R_MICROBLAZE_64_NONE:
 	     {
-
-               /* FIXME: This reloc seems invalid. Assertion to trap
-                * occurrences of this reloc. */
-               BFD_ASSERT(0);
-
 	       /* This was a PC-relative 64-bit instruction that was completely resolved. */
 	       int sfix, efix;
 	       bfd_vma target_address;
