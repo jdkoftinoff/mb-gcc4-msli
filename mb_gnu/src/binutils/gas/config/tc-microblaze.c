@@ -2022,8 +2022,9 @@ md_apply_fix3 (fixS *   fixP,
    if (fixP->fx_addsy == NULL) {
       /* This fixup has been resolved.  Create a reloc in case the linker 
          moves code around due to relaxing */
-      if (fixP->fx_r_type == BFD_RELOC_64_PCREL)
+       if (fixP->fx_r_type == BFD_RELOC_64_PCREL) {
          fixP->fx_r_type = BFD_RELOC_MICROBLAZE_64_NONE;
+       }
       else
          fixP->fx_r_type = BFD_RELOC_NONE;
       fixP->fx_addsy = section_symbol(absolute_section);
