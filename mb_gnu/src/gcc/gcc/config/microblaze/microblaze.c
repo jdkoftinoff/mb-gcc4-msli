@@ -799,6 +799,17 @@ microblaze_legitimate_address_p (enum machine_mode mode, rtx x, int strict)
 }
 
 
+static rtx 
+expand_pic_symbol_ref(enum machine_mode mode ATTRIBUTE_UNUSED, rtx op)
+{
+  rtx result;
+  result = gen_rtx_UNSPEC (Pmode, gen_rtvec (1, op), UNSPEC_GOTOFF);
+  result = gen_rtx_CONST (Pmode, result);
+  result = gen_rtx_PLUS (Pmode, pic_offset_table_rtx, result);
+  result = gen_const_mem (Pmode, result);
+  return result;
+}
+
 /* Try machine-dependent ways of modifying an illegitimate address
    to be legitimate.  If we find one, return the new, valid address.
    This is used from only one place: `memory_address' in explow.c.
@@ -899,10 +910,7 @@ microblaze_legitimize_address (rtx x, rtx oldx ATTRIBUTE_UNUSED,
       }
       if (code1 == SYMBOL_REF)
       {
-        result = gen_rtx_UNSPEC (Pmode, gen_rtvec (1, xplus1), UNSPEC_GOTOFF);
-        result = gen_rtx_CONST (Pmode, result);
-        result = gen_rtx_PLUS (Pmode, pic_offset_table_rtx, result);
-        result = gen_const_mem (Pmode, result);
+        result = expand_pic_symbol_ref(Pmode, xplus1);
         result = gen_rtx_PLUS (Pmode, xplus0, result);
         return result;
       }
@@ -913,10 +921,7 @@ microblaze_legitimize_address (rtx x, rtx oldx ATTRIBUTE_UNUSED,
   {
     if (reload_in_progress)
       regs_ever_live[PIC_OFFSET_TABLE_REGNUM] = 1;
-    result = gen_rtx_UNSPEC (Pmode, gen_rtvec (1, xinsn), UNSPEC_GOTOFF);
-    result = gen_rtx_CONST (Pmode, result);
-    result = gen_rtx_PLUS (Pmode, pic_offset_table_rtx, result);
-    result = gen_const_mem (Pmode, result);
+    result = expand_pic_symbol_ref(Pmode, xinsn);
     return result;
   }
 									
@@ -3333,17 +3338,6 @@ output_ascii (FILE *file, const char *string, int len)
   fprintf (file, "\"\n");
 }
 
-static rtx 
-expand_pic_symbol_ref(enum machine_mode mode ATTRIBUTE_UNUSED, rtx op)
-{
-  rtx result;
-  result = gen_rtx_UNSPEC (Pmode, gen_rtvec (1, op), UNSPEC_GOTOFF);
-  result = gen_rtx_CONST (Pmode, result);
-  result = gen_rtx_PLUS (Pmode, pic_offset_table_rtx, result);
-  result = gen_const_mem (Pmode, result);
-  return result;
-}
-
 bool
 microblaze_expand_move (enum machine_mode mode, rtx operands[])
 {
@@ -3372,20 +3366,18 @@ microblaze_expand_move (enum machine_mode mode, rtx operands[])
       if (GET_CODE (operands[1]) == SYMBOL_REF || GET_CODE (operands[1]) == LABEL_REF)
       {
         rtx result;
+	rtx ptr_reg;
         if (reload_in_progress)
         {
           regs_ever_live[PIC_OFFSET_TABLE_REGNUM] = 1;
         }
         result = expand_pic_symbol_ref (mode, operands[1]);
-        if (GET_CODE (operands[0]) != REG) {
-          rtx ptr_reg = gen_reg_rtx (Pmode);
-          emit_move_insn (ptr_reg, result);
-          emit_move_insn (operands[0], ptr_reg);
-        }
-        else
-        {
-          emit_move_insn (operands[0], result);
-        }
+
+	/* Always use a temporary register, even if operand[0] is already.
+	   This prevents the wrong REG_EQUAL note getting attached to the PIC ref. */
+        ptr_reg = gen_reg_rtx (Pmode);
+        emit_move_insn (ptr_reg, result);
+        emit_move_insn (operands[0], ptr_reg);
         return true;
       }
       else if (GET_CODE (operands[1]) == MEM &&
