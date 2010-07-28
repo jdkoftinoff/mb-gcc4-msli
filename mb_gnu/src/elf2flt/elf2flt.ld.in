@@ -172,7 +172,7 @@ TOR:		@SYMBOL_PREFIX@__DTOR_END__ = .;
 		@SYMBOL_PREFIX@_stack_start = .;
 	}
 
-	.junk 0 : { *(.rel*) *(.rela*) }
+	/DISCARD/ : { *(.rel*) *(.rela*) }
 	/DISCARD/ : { *(.note.GNU-stack) }
 	/* Stabs debugging sections.    */
 	.stab 0 : { *(.stab) }
