@@ -453,6 +453,17 @@ dump_symbols(symbols, number_of_symbols);
 			case R_MICROBLAZE_NONE:
 			case R_MICROBLAZE_64_NONE:
 			case R_MICROBLAZE_32_PCREL_LO:
+			case R_MICROBLAZE_64_PCREL:
+			    continue;
+			case R_MICROBLAZE_GOTOFF_32:
+			case R_MICROBLAZE_GOTOFF_64:
+			case R_MICROBLAZE_GOT_64: /* GOT entry offset */
+			case R_MICROBLAZE_PLT_64: /* PLT offset (PC-relative) */
+				if (verbose) {
+					sym_name = (*((*p)->sym_ptr_ptr))->name;
+					printf("skipping reloc of %s at %08X type %d\n", sym_name,
+						(*p)->address, (*p)->howto->type);
+				}
 				continue;
 			}
 #endif /* TARGET_microblaze */
@@ -524,9 +535,10 @@ dump_symbols(symbols, number_of_symbols);
 			}
 #ifndef TARGET_bfin
 			/* Adjust the address to account for the GOT table which wasn't
-			 * present in the relative file link.
+			 * present in the relative file link when processing the
+			 * data section.
 			 */
-			if (pic_with_got && !use_resolved)
+			if (pic_with_got && !use_resolved && (a->flags & SEC_DATA))
 			  q->address += got_size;
 #endif
 
@@ -717,6 +729,50 @@ dump_symbols(symbols, number_of_symbols);
 
 				    flat_reloc_count++;
 				    break;
+#elif defined(TARGET_microblaze)
+				case R_MICROBLAZE_GOTPC_64: /* PC-relative GOT offset */
+					/* Data segment may be moved away from
+					   GOTPC relative address. The kernel can
+					   choose to locate it anywhere, but
+					   commonly it moves by the number of shared
+					   libraries allowed and the data segment
+					   alignment. */
+					pflags=0xC0000000; /* 64 bit reloc + PC relative */
+
+					sym_addr = (r_mem[2] << 24) |
+						   (r_mem[3] << 16) |
+						   (r_mem[6] << 8) |
+						   (r_mem[7]);
+
+					if (a->flags & SEC_CODE)
+						text_has_relocs = 1;
+
+					relocation_needed = 1;
+					break;
+
+				case R_MICROBLAZE_64:
+					/* The symbol is split over two consecutive
+					   instructions. Flag this to the flat loader
+					   by setting the high bit of the relocation
+					   symbol. */
+					pflags=0x80000000; /* 64 bit reloc */
+
+					sym_addr = (r_mem[2] << 24) |
+						   (r_mem[3] << 16) |
+						   (r_mem[6] << 8) |
+						   (r_mem[7]);
+
+					if (a->flags & SEC_CODE)
+						text_has_relocs = 1;
+
+					relocation_needed = 1;
+					break;
+				
+				case R_MICROBLAZE_32:
+					if (a->flags & SEC_CODE)
+						text_has_relocs = 1;
+
+					goto good_32bit_resolved_reloc;
 #else
 				default:
 					/* The default is to assume that the
@@ -893,67 +949,47 @@ dump_symbols(symbols, number_of_symbols);
 #endif
 
 #ifdef TARGET_microblaze
-				case R_MICROBLAZE_64:
-		/* The symbol is split over two consecutive instructions.  
-		   Flag this to the flat loader by setting the high bit of 
-		   the relocation symbol. */
-				{
-					unsigned char *p = r_mem;
-					pflags=0x80000000;
+				case R_MICROBLAZE_GOTPC_64: /* PC-relative GOT offset */
+					/* Data segment may be moved away from
+					   GOTPC relative address. The kernel can
+					   choose to locate it anywhere, but
+					   commonly it moves by the number of shared
+					   libraries allowed and the data segment
+					   alignment. */
+					pflags = 0xC0000000; /* 64 bit reloc + PC relative */
 
 					/* work out the relocation */
 					sym_vma = bfd_section_vma(abs_bfd, sym_section);
 					sym_addr += sym_vma + q->addend;
-					/* Write relocated pointer back */
-					p[2] = (sym_addr >> 24) & 0xff;
-					p[3] = (sym_addr >> 16) & 0xff;
-					p[6] = (sym_addr >>  8) & 0xff;
-					p[7] =  sym_addr        & 0xff;
+					relocation_needed = 1;
 
-					/* create a new reloc entry */
-					flat_relocs = realloc(flat_relocs,
-						(flat_reloc_count + 1) * sizeof(uint32_t));
-					flat_relocs[flat_reloc_count] = pflags | (section_vma + q->address);
-					flat_reloc_count++;
-					relocation_needed = 0;
-					pflags = 0;
-			sprintf(&addstr[0], "+0x%x", sym_addr - (*(q->sym_ptr_ptr))->value -
-					 bfd_section_vma(abs_bfd, sym_section));
-			if (verbose)
-				printf("  RELOC[%d]: offset=0x%x symbol=%s%s "
-					"section=%s size=%d "
-					"fixup=0x%x (reloc=0x%x)\n", flat_reloc_count,
-					q->address, sym_name, addstr,
-					section_name, sym_reloc_size,
-					sym_addr, section_vma + q->address);
-			if (verbose)
-				printf("reloc[%d] = 0x%x\n", flat_reloc_count,
-					 section_vma + q->address);
+					if (a->flags & SEC_CODE)
+						text_has_relocs = 1;
+					break;
 
-					continue;
-				}
-				case R_MICROBLAZE_32:
-				{	
-					unsigned char *p = r_mem;
+				case R_MICROBLAZE_64:
+					/* The symbol is split over two consecutive instructions.  
+					   Flag this to the flat loader by setting the high bit of 
+					   the relocation symbol. */
+					pflags = 0x80000000; /* 64 bit reloc */
 
+					/* work out the relocation */
 					sym_vma = bfd_section_vma(abs_bfd, sym_section);
 					sym_addr += sym_vma + q->addend;
 					relocation_needed = 1;
-					break;
-				}
-				case R_MICROBLAZE_64_PCREL:
-					sym_vma = 0;
-					sym_addr += sym_vma + q->addend;
-					sym_addr -= (q->address + 4);
-					sym_addr = htonl(sym_addr);
-					/* insert 16 MSB */
-					* ((unsigned short *) (r_mem+2)) = (sym_addr) & 0xFFFF;
-					/* then 16 LSB */
-					* ((unsigned short *) (r_mem+6)) = (sym_addr >> 16) & 0xFFFF;
-					/* We've done all the work, so continue
-					   to next reloc instead of break */
-					continue;
 
+					if (a->flags & SEC_CODE)
+						text_has_relocs = 1;
+					break;
+				
+				case R_MICROBLAZE_32:
+					sym_vma = bfd_section_vma(abs_bfd, sym_section);
+					sym_addr += sym_vma + q->addend;
+					relocation_needed = 1;
+
+					if (a->flags & SEC_CODE)
+						text_has_relocs = 1;
+					break;
 #endif /* TARGET_microblaze */
 					
 #ifdef TARGET_nios2
@@ -1478,6 +1514,16 @@ DIS29_RELOCATION:
 						r_mem[0] = (sym_addr >>  8) & 0xff;
 						r_mem[1] =  sym_addr        & 0xff;
 					}
+					break;
+#endif
+#if defined(TARGET_microblaze)
+				case R_MICROBLAZE_GOTPC_64:
+				case R_MICROBLAZE_64:
+					/* Write relocated pointer back */
+					r_mem[2] = (sym_addr >> 24) & 0xff;
+					r_mem[3] = (sym_addr >> 16) & 0xff;
+					r_mem[6] = (sym_addr >>  8) & 0xff;
+					r_mem[7] =  sym_addr        & 0xff;
 					break;
 #endif
 

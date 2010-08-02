@@ -58,7 +58,7 @@ then
 
 		-shared-lib-id)
 		          shift; SHARED_ID="$1";;      # Shared library ID
-		-shared|-G)
+		-shared)
 		          WANT_SHARED="y";;            # Shared library
 
 		-o)       shift; OFILE="$1";;          # the final outfile
@@ -163,7 +163,8 @@ then
 		fi
 		
 		# provide a default linker script, we usually need one
-		[ -z "$LDSCRIPT" ] && LDSCRIPT="${LDSCRIPTPATH}/elf2flt.ld"
+		#[ -z "$LDSCRIPT" ] && LDSCRIPT="${LDSCRIPTPATH}/elf2flt.ld"
+		LDSCRIPT="${LDSCRIPTPATH}/elf2flt.ld"
 
 		# if we can find the linker script we preprocess it,  otherwise
 		# we assume the user knows what they are doing

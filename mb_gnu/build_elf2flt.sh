@@ -25,7 +25,9 @@ ${ELF2FLT_SRC}/configure --target=microblaze --prefix=${RELDIR} \
         --with-libiberty=${RELDIR}/lib/libiberty.a --program-prefix mb \
         --with-bfd-include-dir=${RELDIR}/include \
         --with-binutils-include-dir=${BINUTILS_SRCS}/include \
-	--disable-ld-elf2flt-binary > $ELF2FLT_BLDDIR/log/elf2flt-config.log 2>&1
+	--disable-ld-elf2flt-binary \
+	--enable-emit-ctor-dtor	--disable-emit-relocs --enable-always-reloc-text \
+	> $ELF2FLT_BLDDIR/log/elf2flt-config.log 2>&1
 print_err " rc = " $?
 
 echo -n "Making..."
