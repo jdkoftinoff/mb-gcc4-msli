@@ -457,8 +457,7 @@ dump_symbols(symbols, number_of_symbols);
 			    continue;
 			case R_MICROBLAZE_GOTOFF_32:
 			case R_MICROBLAZE_GOTOFF_64:
-			case R_MICROBLAZE_GOTPC_64: /* PC-relative GOT offset */ /* TODO: Data segment may be moved away from GOTPC relative!.*/
-			case R_MICROBLAZE_GOT_64: /* GOT entry offset */ /* TODO: Needs reloc? */
+			case R_MICROBLAZE_GOT_64: /* GOT entry offset */
 			case R_MICROBLAZE_PLT_64: /* PLT offset (PC-relative) */
 				if (verbose) {
 					sym_name = (*((*p)->sym_ptr_ptr))->name;
@@ -731,12 +730,32 @@ dump_symbols(symbols, number_of_symbols);
 				    flat_reloc_count++;
 				    break;
 #elif defined(TARGET_microblaze)
+				case R_MICROBLAZE_GOTPC_64: /* PC-relative GOT offset */
+					/* Data segment may be moved away from
+					   GOTPC relative address. The kernel can
+					   choose to locate it anywhere, but
+					   commonly it moves by the number of shared
+					   libraries allowed and the data segment
+					   alignment. */
+					pflags=0xC0000000; /* 64 bit reloc + PC relative */
+
+					sym_addr = (r_mem[2] << 24) |
+						   (r_mem[3] << 16) |
+						   (r_mem[6] << 8) |
+						   (r_mem[7]);
+
+					if (a->flags & SEC_CODE)
+						text_has_relocs = 1;
+
+					relocation_needed = 1;
+					break;
+
 				case R_MICROBLAZE_64:
 					/* The symbol is split over two consecutive
-					 * instructions. Flag this to the flat loader
-					 * by setting the high bit of the relocation
-					 * symbol. */
-					pflags=0x80000000;
+					   instructions. Flag this to the flat loader
+					   by setting the high bit of the relocation
+					   symbol. */
+					pflags=0x80000000; /* 64 bit reloc */
 
 					sym_addr = (r_mem[2] << 24) |
 						   (r_mem[3] << 16) |
@@ -930,12 +949,14 @@ dump_symbols(symbols, number_of_symbols);
 #endif
 
 #ifdef TARGET_microblaze
-				case R_MICROBLAZE_64:
-		/* The symbol is split over two consecutive instructions.  
-		   Flag this to the flat loader by setting the high bit of 
-		   the relocation symbol. */
-				{
-					pflags=0x80000000;
+				case R_MICROBLAZE_GOTPC_64: /* PC-relative GOT offset */
+					/* Data segment may be moved away from
+					   GOTPC relative address. The kernel can
+					   choose to locate it anywhere, but
+					   commonly it moves by the number of shared
+					   libraries allowed and the data segment
+					   alignment. */
+					pflags = 0xC0000000; /* 64 bit reloc + PC relative */
 
 					/* work out the relocation */
 					sym_vma = bfd_section_vma(abs_bfd, sym_section);
@@ -945,9 +966,14 @@ dump_symbols(symbols, number_of_symbols);
 					if (a->flags & SEC_CODE)
 						text_has_relocs = 1;
 					break;
-				}
-				case R_MICROBLAZE_32:
-				{	
+
+				case R_MICROBLAZE_64:
+					/* The symbol is split over two consecutive instructions.  
+					   Flag this to the flat loader by setting the high bit of 
+					   the relocation symbol. */
+					pflags = 0x80000000; /* 64 bit reloc */
+
+					/* work out the relocation */
 					sym_vma = bfd_section_vma(abs_bfd, sym_section);
 					sym_addr += sym_vma + q->addend;
 					relocation_needed = 1;
@@ -955,7 +981,15 @@ dump_symbols(symbols, number_of_symbols);
 					if (a->flags & SEC_CODE)
 						text_has_relocs = 1;
 					break;
-				}
+				
+				case R_MICROBLAZE_32:
+					sym_vma = bfd_section_vma(abs_bfd, sym_section);
+					sym_addr += sym_vma + q->addend;
+					relocation_needed = 1;
+
+					if (a->flags & SEC_CODE)
+						text_has_relocs = 1;
+					break;
 #endif /* TARGET_microblaze */
 					
 #ifdef TARGET_nios2
@@ -1483,6 +1517,7 @@ DIS29_RELOCATION:
 					break;
 #endif
 #if defined(TARGET_microblaze)
+				case R_MICROBLAZE_GOTPC_64:
 				case R_MICROBLAZE_64:
 					/* Write relocated pointer back */
 					r_mem[2] = (sym_addr >> 24) & 0xff;
