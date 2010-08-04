@@ -58,6 +58,11 @@ const char *elf2flt_progname;
 #include "cygwin-elf.h"	/* Cygwin uses a local copy */
 #elif defined(TARGET_microblaze)
 #include <elf/microblaze.h>	/* TARGET_* ELF support for the BFD library */
+#define MICROBLAZE_FLAT_RELVAL_ADDR    0x1fffffff
+#define MICROBLAZE_FLAT_RELVAL_PERSIST 0x60000000
+#define MICROBLAZE_FLAT_RELVAL_GOTREL  0x20000000
+#define MICROBLAZE_FLAT_RELVAL_PCREL   0x40000000
+#define MICROBLAZE_FLAT_RELVAL_64      0x80000000
 #else
 #include <elf.h>      /* TARGET_* ELF support for the BFD library            */
 #endif
@@ -376,6 +381,16 @@ dump_symbols(symbols, number_of_symbols);
 #endif
   }
 
+#ifdef TARGET_microblaze
+  if (pic_with_got) {
+    flat_relocs = (uint32_t *)
+      (realloc (flat_relocs, (flat_reloc_count + 1) * sizeof (uint32_t)));
+    if (verbose)
+      printf ("New persistent data for GOT offset of %08lx\n", text_len);
+    flat_relocs[flat_reloc_count++] = 0x60000000 | text_len;
+  }
+#endif
+
   for (a = abs_bfd->sections; (a != (asection *) NULL); a = a->next) {
   	section_vma = bfd_section_vma(abs_bfd, a);
 
@@ -455,8 +470,6 @@ dump_symbols(symbols, number_of_symbols);
 			case R_MICROBLAZE_32_PCREL_LO:
 			case R_MICROBLAZE_64_PCREL:
 			    continue;
-			case R_MICROBLAZE_GOTOFF_32:
-			case R_MICROBLAZE_GOTOFF_64:
 			case R_MICROBLAZE_GOT_64: /* GOT entry offset */
 			case R_MICROBLAZE_PLT_64: /* PLT offset (PC-relative) */
 				if (verbose) {
@@ -730,33 +743,37 @@ dump_symbols(symbols, number_of_symbols);
 				    flat_reloc_count++;
 				    break;
 #elif defined(TARGET_microblaze)
+				/* Data segment may be moved away from
+				   relative address that cross segments. The
+				   kernel can choose to locate it anywhere, but
+				   commonly the data segment  moves by the
+				   number of shared libraries allowed and the
+				   data segment alignment. */
+				case R_MICROBLAZE_GOTOFF_32:
+					pflags = MICROBLAZE_FLAT_RELVAL_GOTREL;
+
+					goto mb_resolved_32;
+
+				case R_MICROBLAZE_GOTOFF_64:
+					pflags = MICROBLAZE_FLAT_RELVAL_64 |
+					    MICROBLAZE_FLAT_RELVAL_GOTREL;
+
+					goto mb_resolved_64;
+
 				case R_MICROBLAZE_GOTPC_64: /* PC-relative GOT offset */
-					/* Data segment may be moved away from
-					   GOTPC relative address. The kernel can
-					   choose to locate it anywhere, but
-					   commonly it moves by the number of shared
-					   libraries allowed and the data segment
-					   alignment. */
-					pflags=0xC0000000; /* 64 bit reloc + PC relative */
+					pflags = MICROBLAZE_FLAT_RELVAL_64 |
+					    MICROBLAZE_FLAT_RELVAL_PCREL;
 
-					sym_addr = (r_mem[2] << 24) |
-						   (r_mem[3] << 16) |
-						   (r_mem[6] << 8) |
-						   (r_mem[7]);
-
-					if (a->flags & SEC_CODE)
-						text_has_relocs = 1;
-
-					relocation_needed = 1;
-					break;
+					goto mb_resolved_64;
 
 				case R_MICROBLAZE_64:
 					/* The symbol is split over two consecutive
 					   instructions. Flag this to the flat loader
 					   by setting the high bit of the relocation
 					   symbol. */
-					pflags=0x80000000; /* 64 bit reloc */
+					pflags = MICROBLAZE_FLAT_RELVAL_64;
 
+				mb_resolved_64:
 					sym_addr = (r_mem[2] << 24) |
 						   (r_mem[3] << 16) |
 						   (r_mem[6] << 8) |
@@ -769,6 +786,7 @@ dump_symbols(symbols, number_of_symbols);
 					break;
 				
 				case R_MICROBLAZE_32:
+				mb_resolved_32:
 					if (a->flags & SEC_CODE)
 						text_has_relocs = 1;
 
@@ -949,42 +967,61 @@ dump_symbols(symbols, number_of_symbols);
 #endif
 
 #ifdef TARGET_microblaze
-				case R_MICROBLAZE_GOTPC_64: /* PC-relative GOT offset */
-					/* Data segment may be moved away from
-					   GOTPC relative address. The kernel can
-					   choose to locate it anywhere, but
-					   commonly it moves by the number of shared
-					   libraries allowed and the data segment
-					   alignment. */
-					pflags = 0xC0000000; /* 64 bit reloc + PC relative */
+				/* Data segment may be moved away from
+				   relative address that cross segments. The
+				   kernel can choose to locate it anywhere, but
+				   commonly the data segment  moves by the
+				   number of shared libraries allowed and the
+				   data segment alignment. */
+				case R_MICROBLAZE_GOTOFF_32:
+					pflags = MICROBLAZE_FLAT_RELVAL_GOTREL;
 
 					/* work out the relocation */
 					sym_vma = bfd_section_vma(abs_bfd, sym_section);
 					sym_addr += sym_vma + q->addend;
-					relocation_needed = 1;
+					sym_addr -= text_len;
 
-					if (a->flags & SEC_CODE)
-						text_has_relocs = 1;
-					break;
+					goto mb_needs_reloc;
+
+				case R_MICROBLAZE_GOTOFF_64:
+					pflags = MICROBLAZE_FLAT_RELVAL_64 |
+					    MICROBLAZE_FLAT_RELVAL_GOTREL;
+
+					/* work out the relocation */
+					sym_vma = bfd_section_vma(abs_bfd, sym_section);
+					sym_addr += sym_vma + q->addend;
+					sym_addr -= text_len;
+
+					goto mb_needs_reloc;
+
+				case R_MICROBLAZE_GOTPC_64: /* PC-relative GOT offset */
+					pflags = MICROBLAZE_FLAT_RELVAL_64 |
+					    MICROBLAZE_FLAT_RELVAL_PCREL;
+
+					/* work out the relocation */
+					sym_vma = bfd_section_vma(abs_bfd, sym_section);
+					sym_addr += sym_vma + q->addend;
+					sym_addr -= q->address;
+
+					goto mb_needs_reloc;
 
 				case R_MICROBLAZE_64:
 					/* The symbol is split over two consecutive instructions.  
 					   Flag this to the flat loader by setting the high bit of 
 					   the relocation symbol. */
-					pflags = 0x80000000; /* 64 bit reloc */
+					pflags = MICROBLAZE_FLAT_RELVAL_64;
 
 					/* work out the relocation */
 					sym_vma = bfd_section_vma(abs_bfd, sym_section);
 					sym_addr += sym_vma + q->addend;
-					relocation_needed = 1;
 
-					if (a->flags & SEC_CODE)
-						text_has_relocs = 1;
-					break;
+					goto mb_needs_reloc;
 				
 				case R_MICROBLAZE_32:
 					sym_vma = bfd_section_vma(abs_bfd, sym_section);
 					sym_addr += sym_vma + q->addend;
+
+				mb_needs_reloc:
 					relocation_needed = 1;
 
 					if (a->flags & SEC_CODE)
