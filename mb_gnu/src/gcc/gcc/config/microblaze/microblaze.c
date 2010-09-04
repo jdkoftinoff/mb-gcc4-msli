@@ -2050,11 +2050,11 @@ print_operand (
     } else
       output_address (XEXP (op, 0));
 
-  else if (code == CONST_DOUBLE)
+  else if (letter == 'h' || letter == 'j')
   {
-    if (letter == 'h' || letter == 'j')
+    int val[2];
+    if (code == CONST_DOUBLE)
     {
-      int val[2];
       if (GET_MODE (op) == DFmode)
       {
 	REAL_VALUE_TYPE value;
@@ -2064,9 +2064,20 @@ print_operand (
         val[0] = CONST_DOUBLE_HIGH (op);
         val[1] = CONST_DOUBLE_LOW (op);
       }
-      fprintf (file, "0x%8.8x", (letter == 'h') ? val[0] : val[1]);
     }
-    else if (letter == 'F')
+    else if (code == CONST_INT)
+    {
+      val[0] = (INTVAL (op) & 0xffffffff00000000LL) >> 32;
+      val[1] = INTVAL (op) & 0x00000000ffffffffLL;
+      if (val[0] == 0 && val[1] < 0)
+        val[0] = -1;
+    }
+
+    fprintf (file, "0x%8.8x", (letter == 'h') ? val[0] : val[1]);
+  }
+  else if (code == CONST_DOUBLE)
+  {
+    if (letter == 'F')
     {
       unsigned int value_long;
       REAL_VALUE_TYPE value;

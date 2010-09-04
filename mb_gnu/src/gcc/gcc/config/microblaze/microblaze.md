@@ -1123,7 +1123,7 @@
       case 2:
 	  return "addk\t%0,r0,r0\n\taddk\t%D0,r0,r0";
       case 3:
-	  return "addik\t%M0,r0,%s1\n\taddik\t%L0,r0,%1";
+	  return "addik\t%M0,r0,%h1\n\taddik\t%L0,r0,%j1 #li => la";
       case 4:
       case 5:
         if (reg_mentioned_p (operands[0], operands[1]))
