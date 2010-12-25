@@ -9,5 +9,5 @@ if [ ! -f "$TOP"/prepare-mb-gcc4.sh ]; then
     ./build_gcc.sh
     ./build_gdb.sh
     ./build_genromfs.sh
-    echo "PATH=\"$TOP/mb-gcc4-msli/mb_gnu/release/lin64/bin:$TOP/mb-gcc4-msli/mb_gnu/release/lin/bin:\$PATH\"" >"$TOP"/prepare-mb-gcc4.sh
+    echo "PATH=\"$TOP/mb_gnu/release/lin64/bin:$TOP/mb_gnu/release/lin/bin:\$PATH\"" >"$TOP"/prepare-mb-gcc4.sh
 fi
