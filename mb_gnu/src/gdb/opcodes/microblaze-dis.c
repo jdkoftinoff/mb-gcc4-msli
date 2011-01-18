@@ -16,15 +16,15 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.  */
 
 /*
- * Copyright (c) 2001 Xilinx, Inc.  All rights reserved. 
+ * Copyright (c) 2001 Xilinx, Inc.  All rights reserved.
  *
  * Redistribution and use in source and binary forms are permitted
  * provided that the above copyright notice and this paragraph are
  * duplicated in all such forms and that any documentation,
  * advertising materials, and other materials related to such
  * distribution and use acknowledge that the software was developed
- * by Xilinx, Inc.  The name of the Company may not be used to endorse 
- * or promote products derived from this software without specific prior 
+ * by Xilinx, Inc.  The name of the Company may not be used to endorse
+ * or promote products derived from this software without specific prior
  * written permission.
  * THIS SOFTWARE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
  * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
@@ -55,8 +55,9 @@ static char * get_field_imm (long instr);
 static char * get_field_imm5 (long instr);
 static char * get_field_rfsl (long instr);
 static char * get_field_imm15 (long instr);
+static char * get_field_imm5_mbar (long instr);
 char * get_field_special (long instr, struct op_code_struct * op);
-unsigned long read_insn_microblaze (bfd_vma memaddr, 
+unsigned long read_insn_microblaze (bfd_vma memaddr,
 		      struct disassemble_info *info,
 		      struct op_code_struct **opr);
 enum microblaze_instr get_insn_microblaze (long inst,
@@ -65,9 +66,9 @@ enum microblaze_instr get_insn_microblaze (long inst,
   		     short *delay_slots);
 short get_delay_slots_microblaze (long inst);
 enum microblaze_instr microblaze_decode_insn (long insn,
-		        int *rd, 
-			int *ra, 
-			int *rb, 
+		        int *rd,
+			int *ra,
+			int *rb,
 			int *imm);
 unsigned long
 microblaze_get_target_address (long inst,
@@ -104,6 +105,14 @@ get_field_imm5 (long instr)
 }
 
 static char *
+get_field_imm5_mbar (long instr)
+{
+  char tmpstr[25];
+  sprintf(tmpstr, "%d", (short)((instr & IMM5_MBAR_MASK) >> IMM_MBAR));
+  return(strdup(tmpstr));
+}
+
+static char *
 get_field_rfsl (long instr)
 {
   char tmpstr[25];
@@ -121,13 +130,13 @@ get_field_imm15 (long instr)
 
 /*
   char *
-  get_field_special (instr) 
+  get_field_special (instr)
   long instr;
   {
   char tmpstr[25];
-  
+
   sprintf(tmpstr, "%s%s", register_prefix, (((instr & IMM_MASK) >> IMM_LOW) & REG_MSR_MASK) == 0 ? "pc" : "msr");
-  
+
   return(strdup(tmpstr));
   }
 */
@@ -138,7 +147,7 @@ get_field_special (long instr, struct op_code_struct * op)
    char tmpstr[25];
    char spr[6];
 
-   switch ( (((instr & IMM_MASK) >> IMM_LOW) ^ op->immval_mask) ) {
+   switch ((((instr & IMM_MASK) >> IMM_LOW) ^ op->immval_mask) ) {
 
    case REG_MSR_MASK :
       strcpy(spr, "msr");
@@ -157,7 +166,7 @@ get_field_special (long instr, struct op_code_struct * op)
       break;
    case REG_BTR_MASK :
       strcpy(spr, "btr");
-      break;      
+      break;
    case REG_EDR_MASK :
       strcpy(spr, "edr");
       break;
@@ -179,6 +188,12 @@ get_field_special (long instr, struct op_code_struct * op)
    case REG_TLBSX_MASK :
       strcpy(spr, "tlbsx");
       break;
+   case REG_SHR_MASK :
+      strcpy(spr, "shr");
+      break;
+   case REG_SLR_MASK :
+      strcpy(spr, "slr");
+      break;
    default :
      {
        if ( ((((instr & IMM_MASK) >> IMM_LOW) ^ op->immval_mask) & 0xE000) == REG_PVR_MASK) {
@@ -190,13 +205,13 @@ get_field_special (long instr, struct op_code_struct * op)
      }
      break;
    }
-   
+
    sprintf(tmpstr, "%s%s", register_prefix, spr);
    return(strdup(tmpstr));
 }
 
 unsigned long
-read_insn_microblaze (bfd_vma memaddr, 
+read_insn_microblaze (bfd_vma memaddr,
 		      struct disassemble_info *info,
 		      struct op_code_struct **opr)
 {
@@ -207,7 +222,7 @@ read_insn_microblaze (bfd_vma memaddr,
 
   status = info->read_memory_func (memaddr, ibytes, 4, info);
 
-  if (status != 0) 
+  if (status != 0)
     {
       info->memory_error_func (status, memaddr, info);
       return 0;
@@ -230,7 +245,7 @@ read_insn_microblaze (bfd_vma memaddr,
 }
 
 
-int 
+int
 print_insn_microblaze (bfd_vma memaddr, struct disassemble_info * info)
 {
   fprintf_ftype       fprintf = info->fprintf_func;
@@ -249,7 +264,7 @@ print_insn_microblaze (bfd_vma memaddr, struct disassemble_info * info)
   if (inst == 0) {
     return -1;
   }
-  
+
   if (prev_insn_vma == curr_insn_vma) {
   if (memaddr-(info->bytes_per_chunk) == prev_insn_addr) {
     prev_inst = read_insn_microblaze (prev_insn_addr, info, &pop);
@@ -275,7 +290,7 @@ print_insn_microblaze (bfd_vma memaddr, struct disassemble_info * info)
   else
     {
       fprintf (stream, "%s", op->name);
-      
+
       switch (op->inst_type)
 	{
   case INST_TYPE_RD_R1_R2:
@@ -320,7 +335,7 @@ print_insn_microblaze (bfd_vma memaddr, struct disassemble_info * info)
 	  break;
 	case INST_TYPE_R1_IMM:
 	  fprintf(stream, "\t%s, %s", get_field_r1(inst), get_field_imm(inst));
-	  /* The non-pc relative instructions are returns, which shouldn't 
+	  /* The non-pc relative instructions are returns, which shouldn't
 	     have a label printed */
 	  if (info->print_address_func && op->inst_offset_type == INST_PC_OFFSET && info->symbol_at_address_func) {
 	    if (immfound)
@@ -355,7 +370,7 @@ print_insn_microblaze (bfd_vma memaddr, struct disassemble_info * info)
 	    if (info->symbol_at_address_func(immval, info)) {
 	      fprintf (stream, "\t// ");
 	      info->print_address_func (immval, info);
-	    } 
+	    }
 	  }
 	  break;
         case INST_TYPE_IMM:
@@ -394,6 +409,10 @@ print_insn_microblaze (bfd_vma memaddr, struct disassemble_info * info)
   case INST_TYPE_RD_IMM15:
      fprintf(stream, "\t%s, %s", get_field_rd(inst), get_field_imm15(inst));
      break;
+  /* For mbar instruction */
+  case INST_TYPE_IMM5:
+     fprintf(stream, "\t%s",get_field_imm5_mbar(inst));
+     break;
      /* For tuqula instruction */
   case INST_TYPE_RD:
      fprintf(stream, "\t%s", get_field_rd(inst));
@@ -401,13 +420,14 @@ print_insn_microblaze (bfd_vma memaddr, struct disassemble_info * info)
   case INST_TYPE_RFSL:
      fprintf(stream, "\t%s", get_field_rfsl(inst));
      break;
+
   default:
 	  /* if the disassembler lags the instruction set */
-    fprintf (stream, "\tundecoded operands, inst is 0x%04x", (unsigned short)inst);
+	  fprintf (stream, "\tundecoded operands, inst is 0x%04x", (unsigned short)inst);
 	  break;
 	}
     }
-  
+
   /* Say how many bytes we consumed? */
   return 4;
 }
@@ -447,15 +467,15 @@ get_delay_slots_microblaze (long inst)
   op = get_insn_microblaze( inst, &isunsignedimm, &insn_type, &delay_slots);
   if (op == invalid_inst)
     return 0;
-  else 
+  else
     return delay_slots;
 }
 
 enum microblaze_instr
 microblaze_decode_insn (long insn,
-		        int *rd, 
-			int *ra, 
-			int *rb, 
+		        int *rd,
+			int *ra,
+			int *rb,
 			int *imm)
 {
   enum microblaze_instr op;

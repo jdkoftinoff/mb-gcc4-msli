@@ -108,7 +108,9 @@ enum microblaze_regnum
   MICROBLAZE_PVR8_REGNUM,
   MICROBLAZE_PVR9_REGNUM,
   MICROBLAZE_PVR10_REGNUM,
-  MICROBLAZE_PVR11_REGNUM
+  MICROBLAZE_PVR11_REGNUM,
+  MICROBLAZE_SLR_REGNUM,
+  MICROBLAZE_SHR_REGNUM
 };
 
 /* The base of the current frame is actually in the stack pointer.

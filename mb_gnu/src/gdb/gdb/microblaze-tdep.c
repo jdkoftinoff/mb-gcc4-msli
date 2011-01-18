@@ -87,7 +87,7 @@ static const char *microblaze_register_names[] =
   "rpc",  "rmsr", "rear", "resr", "rfsr", "rbtr", 
   "rpvr0", "rpvr1", "rpvr2", "rpvr3", "rpvr4", "rpvr5", "rpvr6",
   "rpvr7", "rpvr8", "rpvr9", "rpvr10", "rpvr11",
-  "redr", "rpid", "rzpr", "rtlbx", "rtlbsx"
+  "redr", "rpid", "rzpr", "rtlbx", "rtlbsx", "rslr", "rshr"
 };
 
 static const gdb_byte big_break_insn[] = BIG_BREAKPOINT;

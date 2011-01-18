@@ -19,15 +19,15 @@
    Boston, MA 02111-1307, USA. */
 
 /*
- * Copyright (c) 2001 Xilinx, Inc.  All rights reserved. 
+ * Copyright (c) 2001 Xilinx, Inc.  All rights reserved.
  *
  * Redistribution and use in source and binary forms are permitted
  * provided that the above copyright notice and this paragraph are
  * duplicated in all such forms and that any documentation,
  * advertising materials, and other materials related to such
  * distribution and use acknowledge that the software was developed
- * by Xilinx, Inc.  The name of the Company may not be used to endorse 
- * or promote products derived from this software without specific prior 
+ * by Xilinx, Inc.  The name of the Company may not be used to endorse
+ * or promote products derived from this software without specific prior
  * written permission.
  * THIS SOFTWARE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
  * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
@@ -62,9 +62,10 @@
     6 32-bit special registers (pc, msr, ear, esr, fsr, btr)
    12 32-bit PVR
     5 32-bit MMU Regs
+    2 32-bit Stack registers (slr, shr)
    ------
-   55 registers */
-#define NUM_REGS 55
+   57 registers */
+#define NUM_REGS 57
 #define PC_REGNUM 32
 #define MSR_REGNUM 33
 #define EAR_REGNUM 34
@@ -83,7 +84,7 @@
 
 /*
 #ifndef WIN
-#define FP_REGNUM 35 
+#define FP_REGNUM 35
 #endif
 */
 
@@ -169,7 +170,7 @@ extern CORE_ADDR microblaze_frame_locals_address (struct frame_info *fi);
 extern void microblaze_pop_frame (struct frame_info *fi);
 #define POP_FRAME microblaze_pop_frame (get_current_frame ())
 
-#define USE_GENERIC_DUMMY_FRAMES 1 
+#define USE_GENERIC_DUMMY_FRAMES 1
 #define CALL_DUMMY                   {0}
 #define CALL_DUMMY_START_OFFSET      (0)
 /*#define CALL_DUMMY_BREAKPOINT_OFFSET (0)*/
