@@ -69,18 +69,19 @@
 ;; imul		integer multiply
 ;; idiv		integer divide
 ;; icmp		integer compare
-;; Xfadd		floating point add/subtract
-;; Xfmul		floating point multiply
+;; Xfadd	floating point add/subtract
+;; Xfmul	floating point multiply
 ;; Xfmadd	floating point multiply-add
-;; Xfdiv		floating point divide
-;; Xfabs		floating point absolute value
-;; Xfneg		floating point negation
-;; Xfcmp		floating point compare
-;; Xfcvt		floating point convert
+;; Xfdiv	floating point divide
+;; Xfabs	floating point absolute value
+;; Xfneg	floating point negation
+;; Xfcmp	floating point compare
+;; Xfcvt	floating point convert
 ;; Xfsqrt	floating point square root
 ;; multi	multiword sequence (or user asm statements)
 ;; nop		no operation
 ;; bshift 	Shift operations
+
 
 (define_attr "type"
   "unknown,branch,jump,call,load,store,move,arith,darith,imul,idiv,icmp,multi,nop,no_delay_arith,no_delay_load,no_delay_store,no_delay_imul,no_delay_move,bshift,fadd,frsub,fmul,fdiv,fcmp,fsl,fsqrt,fcvt"
@@ -3061,3 +3062,13 @@
   [(set_attr "type" "multi")
    (set_attr "length" "12")])
 
+;; This insn gives the count of leading number of zeros for the second
+;; operand and stores the result in first operand.
+(define_insn "clzsi2"
+  [(set (match_operand:SI 0 "register_operand" "=d")
+	(clz:SI (match_operand:SI 1 "register_operand" "d")))]
+  "TARGET_PATTERN_COMPARE"
+  "clz\t%0,%1"
+  [(set_attr "type"	"arith")
+  (set_attr "mode"	"SI")
+  (set_attr "length"	"4")])
