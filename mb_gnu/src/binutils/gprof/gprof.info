@@ -1,5 +1,4 @@
-This is .././gprof/gprof.info, produced by makeinfo version 4.7 from
-.././gprof/gprof.texi.
+This is /home/jeffk/src/msli/git/io-module-firmware/mb-gcc4-msli/mb_gnu/src/binutils/gprof/gprof.info, produced by makeinfo version 4.13 from /home/jeffk/src/msli/git/io-module-firmware/mb-gcc4-msli/mb_gnu/src/binutils/gprof/gprof.texi.
 
 START-INFO-DIR-ENTRY
 * gprof: (gprof).                Profiling your program's execution
@@ -2279,35 +2278,35 @@ permit their use in free software.
 
 
 Tag Table:
-Node: Top735
-Node: Introduction1974
-Node: Compiling4304
-Node: Executing8522
-Node: Invoking11314
-Node: Output Options12729
-Node: Analysis Options19751
-Node: Miscellaneous Options22953
-Node: Deprecated Options24186
-Node: Symspecs26265
-Node: Output28091
-Node: Flat Profile29117
-Node: Call Graph34047
-Node: Primary37262
-Node: Callers39803
-Node: Subroutines41920
-Node: Cycles43729
-Node: Line-by-line50503
-Node: Annotated Source54237
-Node: Inaccuracy57093
-Node: Sampling Error57351
-Node: Assumptions59921
-Node: How do I?61390
-Node: Incompatibilities63206
-Node: Details64674
-Node: Implementation65067
-Node: File Format70964
-Node: Internals75254
-Node: Debugging83631
-Node: GNU Free Documentation License85236
+Node: Top880
+Node: Introduction2119
+Node: Compiling4449
+Node: Executing8667
+Node: Invoking11459
+Node: Output Options12874
+Node: Analysis Options19896
+Node: Miscellaneous Options23098
+Node: Deprecated Options24331
+Node: Symspecs26410
+Node: Output28236
+Node: Flat Profile29262
+Node: Call Graph34192
+Node: Primary37407
+Node: Callers39948
+Node: Subroutines42065
+Node: Cycles43874
+Node: Line-by-line50648
+Node: Annotated Source54382
+Node: Inaccuracy57238
+Node: Sampling Error57496
+Node: Assumptions60066
+Node: How do I?61535
+Node: Incompatibilities63351
+Node: Details64819
+Node: Implementation65212
+Node: File Format71109
+Node: Internals75399
+Node: Debugging83776
+Node: GNU Free Documentation License85381
 
 End Tag Table
