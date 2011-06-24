@@ -96,6 +96,11 @@ extern "C" {
 # define _POSIX_MEMLOCK_RANGE			1
 #endif
 
+#ifdef __MICROBLAZE__
+# define _POSIX_THREADS                         1
+# define _UCLIBC_PTHREADS                       1
+#endif
+
 #ifdef __cplusplus
 }
 #endif
