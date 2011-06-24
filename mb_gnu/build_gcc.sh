@@ -67,6 +67,7 @@ $GCC_SRCDIR/configure 			\
     --disable-libssp			\
     --disable-newlib-atexit-dynamic-alloc	\
     --enable-optimize-memory		\
+    --enable-threads=posix		\
     > $BLDDIR/log/gcc-config.log 2>&1 
     rc=$?
 print_err " rc = " $rc

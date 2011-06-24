@@ -279,7 +279,7 @@ typedef long useconds_t;
  * This means that we don't use the types defined here, but rather in
  * <cygwin/types.h>
  */
-#if defined(_POSIX_THREADS) && !defined(__CYGWIN__)
+#if defined(_POSIX_THREADS) && !defined(__CYGWIN__) && !defined(_UCLIBC_PTHREADS)
 
 #include <sys/sched.h>
 
@@ -449,6 +449,113 @@ typedef struct {
 #else
 #if defined (__CYGWIN__)
 #include <cygwin/types.h>
+#else
+#if defined(_UCLIBC_PTHREADS)
+
+#include <sys/sched.h>
+
+#define __LOCK_INITIALIZER { 0, 0 }
+
+/* Thread identifiers */
+typedef unsigned long int pthread_t;
+
+/* Values for attributes.  */
+
+enum
+{
+  PTHREAD_CREATE_JOINABLE,
+  PTHREAD_CREATE_DETACHED
+};
+
+enum
+{
+  PTHREAD_INHERIT_SCHED,
+  PTHREAD_EXPLICIT_SCHED
+};
+
+enum
+{
+  PTHREAD_SCOPE_SYSTEM,
+  PTHREAD_SCOPE_PROCESS
+};
+
+enum
+{
+  PTHREAD_MUTEX_NORMAL,
+  PTHREAD_MUTEX_RECURSIVE,
+  PTHREAD_MUTEX_ERRORCHECK,
+  PTHREAD_MUTEX_DEFAULT,
+  PTHREAD_MUTEX_FAST_NP
+};
+
+enum
+{
+  PTHREAD_PROCESS_PRIVATE,
+  PTHREAD_PROCESS_SHARED
+};
+
+/* Fast locks (not abstract because mutexes and conditions aren't abstract). */
+struct _pthread_fastlock
+{
+  long int __status;   /* "Free" or "taken" or head of waiting list */
+  int __spinlock;      /* Used by compare_and_swap emulation. Also,
+                          adaptive SMP lock stores spin count here. */
+};
+
+/* Thread descriptors */
+typedef struct _pthread_descr_struct *_pthread_descr;
+
+/* Attributes for threads.  */
+typedef struct __pthread_attr_s
+{
+  int __detachstate;
+  int __schedpolicy;
+  struct sched_param __schedparam;
+  int __inheritsched;
+  int __scope;
+  size_t __guardsize;
+  int __stackaddr_set;
+  void *__stackaddr;
+  size_t __stacksize;
+} pthread_attr_t;
+
+/* Mutexes (not abstract because of PTHREAD_MUTEX_INITIALIZER).  */
+/* (The layout is unnatural to maintain binary compatibility
+       with earlier releases of LinuxThreads.) */
+typedef struct
+{
+  int __m_reserved;               /* Reserved for future use */
+  int __m_count;                  /* Depth of recursive locking */
+  _pthread_descr __m_owner;       /* Owner thread (if recursive or errcheck) */
+  int __m_kind;                   /* Mutex kind: fast, recursive or errcheck */
+  struct _pthread_fastlock __m_lock; /* Underlying fast lock */
+} pthread_mutex_t;
+
+/* Attribute for mutex.  */
+typedef struct
+{
+  int __mutexkind;
+} pthread_mutexattr_t;
+
+/* Once-only execution */
+typedef int pthread_once_t;
+
+/* Conditions (not abstract because of PTHREAD_COND_INITIALIZER */
+typedef struct
+{
+  struct _pthread_fastlock __c_lock; /* Protect against concurrent access */
+  _pthread_descr __c_waiting;        /* Threads waiting on this condition */
+} pthread_cond_t;
+
+/* Attribute for conditionally variables.  */
+typedef struct
+{
+  int __dummy;
+} pthread_condattr_t;
+
+typedef unsigned int pthread_key_t;        /* thread-specific data keys */
+
+#endif /* defined(_UCLIBC_PTHREADS) */
 #endif
 #endif /* defined(_POSIX_THREADS) */
 

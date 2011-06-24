@@ -58,7 +58,7 @@ int	_EXFUN(pthread_mutexattr_setpshared,
 		(pthread_mutexattr_t *attr, int pshared));
 
 /* XSI Mutex Types support */
-#if defined (__XMK__)
+#if defined (__XMK__) || defined(_UCLIBC_PTHREADS)
 int     _EXFUN(pthread_mutexattr_gettype, (const pthread_mutexattr_t *attr, int *type));
 int     _EXFUN(pthread_mutexattr_settype, (pthread_mutexattr_t *attr, int type));
 #endif
@@ -73,8 +73,12 @@ int	_EXFUN(pthread_mutex_destroy, (pthread_mutex_t *mutex));
   
     pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
  */
-
+#if defined(_UCLIBC_PTHREADS)
+#define PTHREAD_MUTEX_INITIALIZER \
+  {0, 0, 0, PTHREAD_MUTEX_NORMAL, __LOCK_INITIALIZER}
+#else
 #define PTHREAD_MUTEX_INITIALIZER  ((pthread_mutex_t) 0xFFFFFFFF)
+#endif
 
 /*  Locking and Unlocking a Mutex, P1003.1c/Draft 10, p. 93
     NOTE: P1003.4b/D8 adds pthread_mutex_timedlock(), p. 29 */
@@ -110,7 +114,11 @@ int	_EXFUN(pthread_cond_destroy, (pthread_cond_t *mutex));
     pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
  */
  
+#if defined(_UCLIBC_PTHREADS)
+#define PTHREAD_COND_INITIALIZER {__LOCK_INITIALIZER, 0}
+#else
 #define PTHREAD_COND_INITIALIZER  ((pthread_mutex_t) 0xFFFFFFFF)
+#endif
  
 /* Broadcasting and Signaling a Condition, P1003.1c/Draft 10, p. 101 */
  
@@ -236,8 +244,12 @@ int	_EXFUN(pthread_equal, (pthread_t t1, pthread_t t2));
     pthread_once_t once = PTHREAD_ONCE_INIT;
   
     NOTE:  This is named inconsistently -- it should be INITIALIZER.  */
- 
+
+#if defined(_UCLIBC_PTHREADS)
+#define PTHREAD_ONCE_INIT 0
+#else
 #define PTHREAD_ONCE_INIT  { 1, 0 }  /* is initialized and not run */
+#endif
  
 int	_EXFUN(pthread_once,
 	(pthread_once_t *once_control, void (*init_routine)(void)));
