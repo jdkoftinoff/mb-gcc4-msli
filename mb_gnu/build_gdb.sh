@@ -5,7 +5,7 @@
 #  Source and patches
 GDBVER=6.5
 
-CFLAGS="-O2"
+CFLAGS="-O2 -Wno-error"
 
 . common.sh
 
