@@ -38,6 +38,8 @@ EXTRA_DIST    = $(BUILT_SOURCES) bbconv.pl $(man_MANS)
 
 diststuff: $(BUILT_SOURCES) info $(man_MANS)
 
+%.o: %.m
+
 .m.c:
 	awk -f $(srcdir)/gen-c-prog.awk > ./$*.c \
 	    FUNCTION=`(echo $*|sed -e 's,.*/,,g' -e 's/_bl//')`_blurb \

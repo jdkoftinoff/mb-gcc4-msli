@@ -1985,6 +1985,12 @@ _bfd_dwarf2_fixup_section_debug_loc (bfd *abfd,
        unsigned long base_address = 0;
        int blklen;
 
+       if (offset + 8 > debug_loc_sec->size)
+         {
+           // Not enough space for the start/end
+           printf("Broken debug_loc: offset %d, size %d\n", offset, debug_loc_sec->size);
+           break;
+         }
        begin = bfd_get_32 (abfd, locbuf + offset);
        end = bfd_get_32 (abfd, locbuf + offset + 4);
 
@@ -1998,6 +2004,13 @@ _bfd_dwarf2_fixup_section_debug_loc (bfd *abfd,
           // printf("\n         ======== ========\n");
           continue;
         }
+
+       if (offset + 12 > debug_loc_sec->size)
+         {
+           // Not enough space for the block length
+           printf("Broken debug_loc: offset %d, size %d\n", offset, debug_loc_sec->size);
+           break;
+         }
 
       /* Find text section which this location reference references. */
       if (irel == NULL) 

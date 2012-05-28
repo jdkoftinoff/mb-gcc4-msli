@@ -49,10 +49,42 @@ extern void longjmp(jmp_buf, int) __attribute__((noreturn));
 #define longjmp __builtin_longjmp
 #endif
 
+#define likely(x)	__builtin_expect(!!(x), 1)
+#define unlikely(x)	__builtin_expect(!!(x), 0)
+
+struct SjLj_Function_Context;
+
+/* This structure defines the context stored in the thread-specific
+   key. */
+struct SjLj_Thread_Context
+{
+  /* Current exception frame */
+  struct SjLj_Function_Context *current;
+
+  /* Thread stack that this thread context is for */
+  void *tos;
+  void *bos;
+};
+
+/* Dummy thread context (this should never actually get used,
+   but keeps us from having to do an additional NULL check on
+   lastThreadContext.) */
+static struct SjLj_Thread_Context dummyThreadContext = {
+  NULL, NULL, (void*)-1
+};
+
+/* Last used thread context. Only the first exception frame after
+   a context switch should miss this. */
+static struct SjLj_Thread_Context *lastThreadContext = &dummyThreadContext;
+
 /* This structure is allocated on the stack of the target function.
    This must match the definition created in except.c:init_eh.  */
 struct SjLj_Function_Context
 {
+  /* Save a pointer to the thread specific chain register for fast
+     unregister of the exception frame. */
+  struct SjLj_Thread_Context *threadContext;
+
   /* This is the chain through all registered contexts.  It is
      filled in by _Unwind_SjLj_Register.  */
   struct SjLj_Function_Context *prev;
@@ -115,19 +147,57 @@ fc_key_init_once (void)
   if (__gthread_once (&once, fc_key_init) != 0 || use_fc_key < 0)
     use_fc_key = 0;
 }
+
+static struct SjLj_Thread_Context*
+fc_key_get_thread_context(void)
+{
+  struct SjLj_Thread_Context* threadContext = (struct SjLj_Thread_Context*)__gthread_getspecific (fc_key);
+  if (likely(NULL != threadContext))
+  {
+    lastThreadContext = threadContext;
+
+    return threadContext;
+  }
+  else
+  {
+    threadContext = (struct SjLj_Thread_Context*)malloc(sizeof(struct SjLj_Thread_Context));
+    threadContext->current = NULL;
+    threadContext->bos = __gthread_self_stack(&threadContext->tos);
+
+    __gthread_setspecific(fc_key, threadContext);
+    lastThreadContext = threadContext;
+
+    return threadContext;
+  }
+}
 #endif
 
 void
 _Unwind_SjLj_Register (struct SjLj_Function_Context *fc)
 {
 #if __GTHREADS
-  if (use_fc_key < 0)
+  if (unlikely(use_fc_key < 0)) {
     fc_key_init_once ();
+  }
 
-  if (use_fc_key)
+  if (likely(use_fc_key))
     {
-      fc->prev = __gthread_getspecific (fc_key);
-      __gthread_setspecific (fc_key, fc);
+      struct SjLj_Thread_Context* threadContext = lastThreadContext;
+
+      if (likely(__builtin_frame_address(0) < threadContext->tos &&
+                 __builtin_frame_address(0) >= threadContext->bos))
+      {
+        fc->threadContext = threadContext;
+        fc->prev = threadContext->current;
+        fc->threadContext->current = fc;
+      }
+      else
+      {
+        threadContext = fc_key_get_thread_context();
+        fc->threadContext = threadContext;
+        fc->prev = threadContext->current;
+        fc->threadContext->current = fc;
+      }
     }
   else
 #endif
@@ -141,24 +211,58 @@ static inline struct SjLj_Function_Context *
 _Unwind_SjLj_GetContext (void)
 {
 #if __GTHREADS
-  if (use_fc_key < 0)
+  if (unlikely(use_fc_key < 0)) {
     fc_key_init_once ();
+  }
 
-  if (use_fc_key)
-    return __gthread_getspecific (fc_key);
+  if (likely(use_fc_key))
+  {
+    struct SjLj_Thread_Context *threadContext = lastThreadContext;
+
+    if (likely(__builtin_frame_address(0) < threadContext->tos &&
+               __builtin_frame_address(0) >= threadContext->bos))
+    {
+      return threadContext->current;
+    }
+    else
+    {
+      threadContext = fc_key_get_thread_context();
+      return threadContext->current;
+    }
+  }
 #endif
   return fc_static;
 }
 
+/* NOTE: This should only be called to set the context to a previous one on the chain
+   as it assumes that the threadContext member is already set. This is true for both
+   unregister and unwind that currently call this. */
 static inline void
 _Unwind_SjLj_SetContext (struct SjLj_Function_Context *fc)
 {
 #if __GTHREADS
-  if (use_fc_key < 0)
+  if (unlikely(use_fc_key < 0)) {
     fc_key_init_once ();
+  }
 
-  if (use_fc_key)
-    __gthread_setspecific (fc_key, fc);
+  if (likely(use_fc_key)) {
+    if (likely(NULL != fc)) {
+      fc->threadContext->current = fc;
+    } else {
+      struct SjLj_Thread_Context *threadContext = lastThreadContext;
+
+      if (likely(__builtin_frame_address(0) < threadContext->tos &&
+                 __builtin_frame_address(0) >= threadContext->bos))
+      {
+        threadContext->current = NULL;
+      }
+      else
+      {
+        threadContext = fc_key_get_thread_context();
+        threadContext->current = NULL;
+      }
+    }
+  }
   else
 #endif
     fc_static = fc;

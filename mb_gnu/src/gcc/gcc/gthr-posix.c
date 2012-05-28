@@ -172,6 +172,14 @@ pthread_self (void)
 {
   return (pthread_t) 0;
 }
+
+void*
+pthread_self_stack (void **tos)
+{
+  if (NULL != tos) *tos = NULL;
+  return (void*)(-1);
+}
+
 #ifdef _POSIX_PRIORITY_SCHEDULING
 #ifdef _POSIX_THREAD_PRIORITY_SCHEDULING
 int
