@@ -356,9 +356,13 @@ init_eh (void)
      the definition in unwind-sjlj.c.  */
   if (USING_SJLJ_EXCEPTIONS)
     {
-      tree f_jbuf, f_per, f_lsda, f_prev, f_cs, f_data, tmp;
+      tree f_jbuf, f_per, f_lsda, f_prev, f_cs, f_data, tmp, f_thread;
 
       sjlj_fc_type_node = lang_hooks.types.make_type (RECORD_TYPE);
+
+      f_thread = build_decl (FIELD_DECL, get_identifier ("__threadContext"),
+			   build_pointer_type (sjlj_fc_type_node));
+      DECL_FIELD_CONTEXT (f_thread) = sjlj_fc_type_node;
 
       f_prev = build_decl (FIELD_DECL, get_identifier ("__prev"),
 			   build_pointer_type (sjlj_fc_type_node));
@@ -407,7 +411,8 @@ init_eh (void)
 #endif
       DECL_FIELD_CONTEXT (f_jbuf) = sjlj_fc_type_node;
 
-      TYPE_FIELDS (sjlj_fc_type_node) = f_prev;
+      TYPE_FIELDS (sjlj_fc_type_node) = f_thread;
+      TREE_CHAIN (f_thread) = f_prev;
       TREE_CHAIN (f_prev) = f_cs;
       TREE_CHAIN (f_cs) = f_data;
       TREE_CHAIN (f_data) = f_per;

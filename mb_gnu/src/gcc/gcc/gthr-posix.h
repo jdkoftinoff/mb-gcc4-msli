@@ -101,6 +101,7 @@ __gthrw(pthread_key_delete)
 __gthrw(pthread_mutexattr_init)
 __gthrw(pthread_mutexattr_settype)
 __gthrw(pthread_mutexattr_destroy)
+__gthrw(pthread_self_stack)
 
 
 #if defined(_LIBOBJC) || defined(_LIBOBJC_WEAK)
@@ -540,6 +541,12 @@ static inline int
 __gthread_setspecific (__gthread_key_t key, const void *ptr)
 {
   return __gthrw_(pthread_setspecific) (key, ptr);
+}
+
+static inline void *
+__gthread_self_stack (void **tos)
+{
+  return __gthrw_(pthread_self_stack) (tos);
 }
 
 static inline int

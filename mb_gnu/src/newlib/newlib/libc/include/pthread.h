@@ -233,6 +233,9 @@ void	_EXFUN(pthread_exit, (void *value_ptr));
 
 pthread_t	_EXFUN(pthread_self, (void));
 
+/* CRW - Extension for faster exception handling */
+void * _EXFUN(pthread_self_stack, (void **tos));
+
 /* Compare Thread IDs, p1003.1c/Draft 10, p. 153 */
 
 int	_EXFUN(pthread_equal, (pthread_t t1, pthread_t t2));
