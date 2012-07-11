@@ -1126,7 +1126,7 @@ extern enum reg_class microblaze_char_to_class[];
    : (C) == 'M' ? (!((unsigned HOST_WIDE_INT) ((VALUE) + 0x8000) < 0x10000)) \
    : (C) == 'N' ? ((unsigned HOST_WIDE_INT) ((VALUE) + 0xffff) < 0xffff) \
    : (C) == 'O' ? ((unsigned HOST_WIDE_INT) ((VALUE) + 0x4000) < 0x8000) \
-   : (C) == 'P' ? ((VALUE) != 0 && (((VALUE) & 0xFFFF0000) == 0))	\
+   : (C) == 'P' ? ((VALUE) != 0 && (((VALUE) & 0xFFFFFFFFFFFF0000) == 0))	\
    : 0)
 
 /* Similar, but for floating constants, and defining letters G and H.

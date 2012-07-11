@@ -479,7 +479,7 @@
 (define_insn "adddi3"
   [(set (match_operand:DI 0 "register_operand" "=d,d,d")
 	(plus:DI (match_operand:DI 1 "register_operand" "d,d,d")
-		 (match_operand:DI 2 "arith_operand" "d,K,JL")))]
+		 (match_operand:DI 2 "arith_operand" "d,P,N")))]
   ""
   "@
   add\t%L0,%L1,%L2\;addc\t%M0,%M1,%M2
