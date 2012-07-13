@@ -2069,8 +2069,6 @@ print_operand (
     {
       val[0] = (INTVAL (op) & 0xffffffff00000000LL) >> 32;
       val[1] = INTVAL (op) & 0x00000000ffffffffLL;
-      if (val[0] == 0 && val[1] < 0)
-        val[0] = -1;
     }
 
     fprintf (file, "0x%8.8x", (letter == 'h') ? val[0] : val[1]);
